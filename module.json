@@ -1,0 +1,26 @@
+{
+  "name": "lwm2m-client-mbedtls",
+  "version": "0.0.0",
+  "description": "Mbedtls specific implementation, which can be used by Lwm2m clients",
+  "private" : true,
+  "keywords": [
+    "lwm2m-client-mbedtls"
+  ],
+  "author": "Antti Kauppila",
+  "repository": {
+    "url": "git@github.com:ARMmbed/lwm2m-client-mbedtls.git",
+    "type": "git"
+  },
+  "homepage": "https://github.com/ARMmbed/lwm2m-client-mbedtls",
+  "licenses": [
+    {
+      "url": "https://spdx.org/licenses/Apache-2.0",
+      "type": "Apache-2.0"
+    }
+  ],
+  "dependencies": {
+      "mbedtls":"~2.0.0"
+  },
+  "targetDependencies": {
+  }
+}
