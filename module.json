@@ -1,8 +1,8 @@
 {
   "name": "lwm2m-client-mbedtls",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Mbedtls specific implementation, which can be used by Lwm2m clients",
-  "private" : true,
+  "private": true,
   "keywords": [
     "lwm2m-client-mbedtls"
   ],
@@ -19,8 +19,7 @@
     }
   ],
   "dependencies": {
-      "mbedtls":"~2.0.0"
+    "mbedtls": "~2.0.0"
   },
-  "targetDependencies": {
-  }
+  "targetDependencies": {}
 }
