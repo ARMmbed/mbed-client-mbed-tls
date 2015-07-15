@@ -71,7 +71,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
 
 
         if( mbedtls_entropy_add_source( &entropy, entropy_poll, NULL,
-                                    128 ) < 0 ){
+                                    128, 0 ) < 0 ){
             free(serPub);
             free(pubCert);
             free(secKey);
@@ -153,7 +153,7 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
 
     if( ( ret = mbedtls_ssl_config_defaults( &_conf,
                        MBEDTLS_SSL_IS_CLIENT,
-                       MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ) != 0 )
+                       MBEDTLS_SSL_TRANSPORT_DATAGRAM, 0 ) ) != 0 )
     {
         return -1;
     }
@@ -202,7 +202,7 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
 
     if( ( ret = mbedtls_ssl_config_defaults( &_conf,
                        MBEDTLS_SSL_IS_CLIENT,
-                       MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ) != 0 )
+                       MBEDTLS_SSL_TRANSPORT_DATAGRAM, 0 ) ) != 0 )
     {
         return -1;
     }
