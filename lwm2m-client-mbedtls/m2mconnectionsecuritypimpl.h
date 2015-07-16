@@ -6,7 +6,6 @@
 #include "lwm2m-client/m2mtimerobserver.h"
 
 #include "mbedtls/config.h"
-//#include "mbedtls/net.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
