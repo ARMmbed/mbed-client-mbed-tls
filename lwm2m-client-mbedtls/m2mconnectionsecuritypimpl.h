@@ -17,6 +17,15 @@
 class M2MSecurity;
 class M2MTimer;
 
+//TODO: Should we let application to select these or not??
+const static int PSK_SUITES[] = {
+    MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256,
+    MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8,
+    MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8,
+    0
+};
+
+
 class M2MConnectionSecurityPimpl : public M2MTimerObserver {
 private:
     // Prevents the use of assignment operator by accident.

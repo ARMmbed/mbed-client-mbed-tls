@@ -128,6 +128,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
             mbedtls_ssl_conf_ca_chain( &_conf, &_cacert, NULL );
         }else if(security->resource_value_int(M2MSecurity::SecurityMode) == M2MSecurity::Psk ){
             ret = mbedtls_ssl_conf_psk(&_conf, secKey, secKeySize, pubCert, pubCertSize);
+            mbedtls_ssl_conf_ciphersuites(&_conf, PSK_SUITES);
             free(serPub);
             free(pubCert);
             free(secKey);
