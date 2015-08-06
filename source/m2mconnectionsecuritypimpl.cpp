@@ -312,7 +312,7 @@ int entropy_poll( void *, unsigned char *output, size_t len,
     srand(time(NULL));
     char *c = (char*)malloc(len+1);
     memset(c, 0, len+1);
-    for(uint i=0; i < len; i++){
+    for(uint16_t i=0; i < len; i++){
         c[i] = rand() % 256;
     }
     memcpy(output, &c, len);
