@@ -1,17 +1,17 @@
 {
   "name": "mbed-client-mbedtls",
-  "version": "0.0.5",
-  "description": "Mbedtls specific implementation, which can be used by Lwm2m clients",
+  "version": "0.0.6",
+  "description": "Mbedtls specific implementation, which can be used by mbed client",
   "private": true,
   "keywords": [
-    "lwm2m-client-mbedtls"
+    "mbed-client-mbedtls"
   ],
   "author": "Antti Kauppila",
   "repository": {
-    "url": "git@github.com:ARMmbed/lwm2m-client-mbedtls.git",
+    "url": "git@github.com:ARMmbed/mbed-client-mbedtls.git",
     "type": "git"
   },
-  "homepage": "https://github.com/ARMmbed/lwm2m-client-mbedtls",
+  "homepage": "https://github.com/ARMmbed/mbed-client-mbedtls",
   "license": "Apache-2.0",
   "dependencies": {
     "mbedtls": "~2.0.0"

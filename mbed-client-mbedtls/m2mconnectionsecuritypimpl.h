@@ -17,8 +17,8 @@
 #ifndef __M2M_CONNECTION_SECURITY_PIMPL_H__
 #define __M2M_CONNECTION_SECURITY_PIMPL_H__
 
-#include "lwm2m-client/m2mconnectionsecurity.h"
-#include "lwm2m-client/m2mtimerobserver.h"
+#include "mbed-client/m2mconnectionsecurity.h"
+#include "mbed-client/m2mtimerobserver.h"
 
 #include "mbedtls/config.h"
 #include "mbedtls/debug.h"

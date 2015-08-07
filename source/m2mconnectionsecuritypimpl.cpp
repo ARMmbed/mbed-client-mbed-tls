@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include "lwm2m-client/m2mconnectionhandler.h"
-#include "lwm2m-client-mbedtls/m2mconnectionsecuritypimpl.h"
-#include "lwm2m-client/m2mtimer.h"
-#include "lwm2m-client/m2msecurity.h"
+#include "mbed-client/m2mconnectionhandler.h"
+#include "mbed-client-mbedtls/m2mconnectionsecuritypimpl.h"
+#include "mbed-client/m2mtimer.h"
+#include "mbed-client/m2msecurity.h"
 #include <string.h>
 
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms );
