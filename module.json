@@ -1,5 +1,5 @@
 {
-  "name": "mbed-client-mbed-tls",
+  "name": "mbed-client-mbedtls",
   "version": "0.0.5",
   "description": "Mbedtls specific implementation, which can be used by Lwm2m clients",
   "private": true,
