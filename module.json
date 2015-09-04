@@ -2,7 +2,6 @@
   "name": "mbed-client-mbedtls",
   "version": "0.0.8",
   "description": "Mbedtls specific implementation, which can be used by mbed client",
-  "private": true,
   "keywords": [
     "mbed-client-mbedtls"
   ],
