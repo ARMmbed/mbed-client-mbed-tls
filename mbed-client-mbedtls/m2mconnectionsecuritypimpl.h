@@ -49,7 +49,7 @@ private:
     M2MConnectionSecurityPimpl( const M2MConnectionSecurityPimpl& /*other*/ );
 
 public:
-    M2MConnectionSecurityPimpl();
+    M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode);
 
     virtual ~M2MConnectionSecurityPimpl();
 
@@ -81,6 +81,8 @@ private:
     mbedtls_ctr_drbg_context    _ctr_drbg;
     uint32_t                    _flags;
     M2MTimer                    *_timmer;
+
+    M2MConnectionSecurity::SecurityMode _sec_mode;
 
     unsigned char               _buf[1024];
 

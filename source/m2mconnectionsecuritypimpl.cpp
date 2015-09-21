@@ -28,7 +28,9 @@ int f_send( void *ctx, const unsigned char *buf, size_t len );
 int f_recv(void *ctx, unsigned char *buf, size_t len);
 int f_recv_timeout(void *ctx, unsigned char *buf, size_t len, uint32_t some);
 
-M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl() : _flags(0)
+M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
+  : _flags(0),
+    _sec_mode(mode)
 {
     _init_done = false;
     _timmer = new M2MTimer(*this);
@@ -167,9 +169,14 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
         return ret;
     }
 
+    int mode = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
+    if( _sec_mode == M2MConnectionSecurity::TLS ){
+        mode = MBEDTLS_SSL_TRANSPORT_STREAM;
+    }
+
     if( ( ret = mbedtls_ssl_config_defaults( &_conf,
                        MBEDTLS_SSL_IS_CLIENT,
-                       MBEDTLS_SSL_TRANSPORT_DATAGRAM, 0 ) ) != 0 )
+                       mode, 0 ) ) != 0 )
     {
         return -1;
     }
