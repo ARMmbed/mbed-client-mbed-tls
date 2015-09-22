@@ -21,7 +21,7 @@
 #include "mbed-client/m2msecurity.h"
 #include "mbed-client-mbedtls/m2mconnectionsecuritypimpl.h"
 
-2MConnectionSecurity::M2MConnectionSecurity(SecurityMode mode)
+M2MConnectionSecurity::M2MConnectionSecurity(SecurityMode mode)
 {
     _private_impl = new M2MConnectionSecurityPimpl(mode);
 }
