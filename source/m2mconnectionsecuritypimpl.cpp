@@ -223,9 +223,14 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
         return ret;
     }
 
+    int mode = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
+    if( _sec_mode == M2MConnectionSecurity::TLS ){
+        mode = MBEDTLS_SSL_TRANSPORT_STREAM;
+    }
+
     if( ( ret = mbedtls_ssl_config_defaults( &_conf,
                        MBEDTLS_SSL_IS_CLIENT,
-                       MBEDTLS_SSL_TRANSPORT_DATAGRAM, 0 ) ) != 0 )
+                       mode, 0 ) ) != 0 )
     {
         return -1;
     }
