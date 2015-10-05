@@ -306,12 +306,12 @@ int M2MConnectionSecurityPimpl::read(unsigned char* buffer, uint16_t len){
 
 int f_send( void *ctx, const unsigned char *buf, size_t len){
     M2MConnectionHandler* handler = ((M2MConnectionHandler *) ctx);
-    return handler->sendToSocket(buf, len);
+    return handler->send_to_socket(buf, len);
 }
 
 int f_recv(void *ctx, unsigned char *buf, size_t len){
     M2MConnectionHandler* handler = ((M2MConnectionHandler *) ctx);
-    return handler->receiveFromSocket(buf, len);
+    return handler->receive_from_socket(buf, len);
 }
 
 int f_recv_timeout(void *ctx, unsigned char *buf, size_t len, uint32_t /*some*/){
