@@ -30,6 +30,7 @@ namespace mbedtls_stub
     extern int retArray[20];
     extern int expected_int;
     extern uint32_t expected_uint32_value;
+    extern bool invalidate_timer;
     void clear();
 }
 

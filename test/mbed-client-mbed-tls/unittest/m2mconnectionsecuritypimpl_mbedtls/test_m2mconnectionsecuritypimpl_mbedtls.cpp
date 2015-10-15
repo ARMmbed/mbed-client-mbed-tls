@@ -150,6 +150,7 @@ void Test_M2MConnectionSecurityPimpl::test_init()
 
 void Test_M2MConnectionSecurityPimpl::test_connect()
 {
+    mbedtls_stub::invalidate_timer = true;
     M2MConnectionSecurityPimpl impl = M2MConnectionSecurityPimpl(M2MConnectionSecurity::TLS);
     CHECK( -1 == impl.connect(NULL));
 
@@ -279,7 +280,18 @@ void Test_M2MConnectionSecurityPimpl::test_read()
 
 void Test_M2MConnectionSecurityPimpl::test_timer_expired()
 {
+    //This uses static function so we need to prepare test using connect() function.
+    mbedtls_stub::invalidate_timer = false;
     M2MConnectionSecurityPimpl impl = M2MConnectionSecurityPimpl(M2MConnectionSecurity::TLS);
+    impl._init_done = true;
+    m2msecurity_stub::int_value = 5;
+    m2msecurity_stub::has_value = true;
+    mbedtls_stub::useCounter = true;
+    mbedtls_stub::counter = 0;
+    mbedtls_stub::retArray[0] = 0;
+    mbedtls_stub::retArray[1] = 0;
+    mbedtls_stub::retArray[3] = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
+    impl.connect(NULL);
+
     impl.timer_expired(M2MTimerObserver::Dtls);
-    //Nothing to test for now
 }

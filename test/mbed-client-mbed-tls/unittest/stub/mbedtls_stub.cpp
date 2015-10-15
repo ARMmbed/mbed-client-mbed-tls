@@ -22,6 +22,7 @@ int mbedtls_stub::retArray[20];
 int mbedtls_stub::crt_expected_int;
 int mbedtls_stub::expected_int;
 uint32_t mbedtls_stub::expected_uint32_value;
+bool mbedtls_stub::invalidate_timer;
 
 void mbedtls_stub::clear()
 {
@@ -33,6 +34,7 @@ void mbedtls_stub::clear()
     for( int i=0; i < 20; i++ ){
         retArray[i] = -1;
     }
+    invalidate_timer = false;
 }
 
 //From ssl.h
@@ -139,6 +141,9 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *,
     if(ctx != NULL){
         f_set_timer(ctx, 1, 2);
         f_get_timer(ctx);
+        if(mbedtls_stub::invalidate_timer){
+            f_set_timer(ctx, 0, 0);
+        }
     }
 }
 
