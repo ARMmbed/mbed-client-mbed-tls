@@ -28,11 +28,14 @@ int f_send( void *ctx, const unsigned char *buf, size_t len );
 int f_recv(void *ctx, unsigned char *buf, size_t len);
 int f_recv_timeout(void *ctx, unsigned char *buf, size_t len, uint32_t some);
 
+bool cancelled;
+
 M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
   : _flags(0),
     _sec_mode(mode)
 {
     _init_done = false;
+    cancelled = true;
     _timmer = new M2MTimer(*this);
     mbedtls_ssl_init( &_ssl );
     mbedtls_ssl_config_init( &_conf );
@@ -46,11 +49,16 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
     delete _timmer;
 }
 
-void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type /*type*/){
+void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
+    if(type == M2MTimerObserver::Dtls && !cancelled){
+        continue_connecting();
+    }
 }
 
 void M2MConnectionSecurityPimpl::reset(){
     _init_done = false;
+    cancelled = true;
+    _timmer->stop_timer();
 //    int ret = -1;
 //    do ret = mbedtls_ssl_close_notify( &_ssl );
 //    while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
@@ -335,10 +343,13 @@ int entropy_poll( void *, unsigned char *output, size_t len,
 }
 
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
+    M2MTimer* timer = (M2MTimer*) data;
     if( int_ms > 0 && fin_ms > 0 ){
-        M2MTimer* timer = (M2MTimer*) data;
-
+        cancelled = false;
         timer->start_dtls_timer(int_ms, fin_ms);
+    }else{
+        cancelled = true;
+        timer->stop_timer();
     }
 }
 
