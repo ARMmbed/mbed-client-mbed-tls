@@ -52,6 +52,12 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
 void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
     if(type == M2MTimerObserver::Dtls && !cancelled){
         continue_connecting();
+        if(_timmer->is_total_interval_passed()) {
+            if(_ssl.p_bio) {
+                M2MConnectionHandler* ptr = (M2MConnectionHandler*)_ssl.p_bio;
+                ptr->handle_connection_error(4);
+            }
+        }
     }
 }
 
@@ -205,7 +211,7 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
     mbedtls_ssl_set_bio( &_ssl, connHandler,
                         f_send, f_recv, f_recv_timeout );
 
-    mbedtls_ssl_set_timer_cb( &_ssl, _timmer, mbedtls_timing_set_delay,
+    mbedtls_ssl_set_timer_cb( &_ssl, NULL, mbedtls_timing_set_delay,
                                             mbedtls_timing_get_delay );
 
     do ret = mbedtls_ssl_handshake( &_ssl );
@@ -344,6 +350,9 @@ int entropy_poll( void *, unsigned char *output, size_t len,
 
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
     M2MTimer* timer = (M2MTimer*) data;
+    if(!timer) {
+        return;
+    }
     if( int_ms > 0 && fin_ms > 0 ){
         cancelled = false;
         timer->start_dtls_timer(int_ms, fin_ms);
@@ -355,7 +364,9 @@ void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
 
 int mbedtls_timing_get_delay( void *data ){
     M2MTimer* timer = (M2MTimer*) data;
-
+    if(!timer){
+        return 0;
+    }
     if( timer->is_intermediate_interval_passed() ){
         return 1;
     }else if( timer->is_total_interval_passed() ){

@@ -293,5 +293,11 @@ void Test_M2MConnectionSecurityPimpl::test_timer_expired()
     mbedtls_stub::retArray[3] = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
     impl.connect(NULL);
 
+    m2mtimer_stub::total_bool_value = true;
+    mbedtls_stub::bio = new M2MConnectionHandler(*this,NULL,
+                                                 M2MInterface::NOT_SET,
+                                                 M2MInterface::LwIP_IPv4);
+
     impl.timer_expired(M2MTimerObserver::Dtls);
+    delete mbedtls_stub::bio;
 }
