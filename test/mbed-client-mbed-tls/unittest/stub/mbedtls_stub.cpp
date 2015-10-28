@@ -26,7 +26,7 @@ bool mbedtls_stub::invalidate_timer;
 
 void mbedtls_stub::clear()
 {
-    mbedtls_stub::useCounter = false;
+    mbedtls_stub::useCounter = false;    
     counter = 0;
     expected_int = -1;
     crt_expected_int = -1;
@@ -59,6 +59,11 @@ void mbedtls_ssl_init( mbedtls_ssl_context * ){
 }
 
 void mbedtls_ssl_config_init( mbedtls_ssl_config * ){
+
+}
+
+void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *, uint32_t, uint32_t)
+{
 
 }
 
@@ -138,13 +143,12 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *,
                                void *ctx,
                                void (*f_set_timer)(void *, uint32_t int_ms, uint32_t fin_ms),
                                int (*f_get_timer)(void *) ){
-    if(ctx != NULL){
-        f_set_timer(ctx, 1, 2);
-        f_get_timer(ctx);
-        if(mbedtls_stub::invalidate_timer){
-            f_set_timer(ctx, 0, 0);
-        }
+    f_set_timer(ctx, 1, 2);
+    f_get_timer(ctx);
+    if(mbedtls_stub::invalidate_timer){
+        f_set_timer(ctx, 0, 0);
     }
+    f_get_timer(ctx);
 }
 
 int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl ){
