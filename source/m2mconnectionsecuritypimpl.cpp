@@ -291,10 +291,10 @@ int M2MConnectionSecurityPimpl::send_message(unsigned char *message, int len){
         return ret;
     }
 
-    do ret = mbedtls_ssl_write( &_ssl, (unsigned char *) message, len );
+    /*do ret = mbedtls_ssl_write( &_ssl, (unsigned char *) message, len );
     while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
            ret == MBEDTLS_ERR_SSL_WANT_WRITE );
-
+*/
     return ret; //bytes written
 }
 
