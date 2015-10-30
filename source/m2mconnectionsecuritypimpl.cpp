@@ -32,7 +32,8 @@ bool cancelled;
 
 M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
   : _flags(0),
-    _sec_mode(mode)
+    _sec_mode(mode),
+    _is_blocking(false)
 {
     _init_done = false;
     cancelled = true;
@@ -50,8 +51,19 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
 }
 
 void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
-    if(type == M2MTimerObserver::Dtls && !cancelled){
-        continue_connecting();
+    if(type == M2MTimerObserver::Dtls && !cancelled && !_is_blocking){
+        int error = continue_connecting();
+        if(MBEDTLS_ERR_SSL_TIMEOUT == error) {
+            if(_ssl.p_bio) {
+                M2MConnectionHandler* ptr = (M2MConnectionHandler*)_ssl.p_bio;
+                ptr->handle_connection_error(4);
+            }
+        }
+    } else {
+        if(_ssl.p_bio) {
+            M2MConnectionHandler* ptr = (M2MConnectionHandler*)_ssl.p_bio;
+            ptr->handle_connection_error(4);
+        }
     }
 }
 
@@ -177,6 +189,7 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
         return ret;
     }
 
+    _is_blocking = true;
     int mode = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
     if( _sec_mode == M2MConnectionSecurity::TLS ){
         mode = MBEDTLS_SSL_TRANSPORT_STREAM;
@@ -188,7 +201,8 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
     {
         return -1;
     }
-
+    // This is for blocking sockets timeout happens once at 60 seconds
+    mbedtls_ssl_conf_handshake_timeout( &_conf, 60000, 61000 );
     mbedtls_ssl_conf_rng( &_conf, mbedtls_ctr_drbg_random, &_ctr_drbg );
 
     if( ( ret = mbedtls_ssl_setup( &_ssl, &_conf ) ) != 0 )
@@ -231,6 +245,7 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
         return ret;
     }
 
+    _is_blocking = false;
     int mode = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
     if( _sec_mode == M2MConnectionSecurity::TLS ){
         mode = MBEDTLS_SSL_TRANSPORT_STREAM;
@@ -243,6 +258,8 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
         return -1;
     }
 
+    // This is for non-blocking sockets total timeout is 1+2+4+8+16+29=60 seconds
+    mbedtls_ssl_conf_handshake_timeout( &_conf, 1000, 29000 );
     mbedtls_ssl_conf_rng( &_conf, mbedtls_ctr_drbg_random, &_ctr_drbg );
 
     if( ( ret = mbedtls_ssl_setup( &_ssl, &_conf ) ) != 0 )
@@ -277,6 +294,16 @@ int M2MConnectionSecurityPimpl::continue_connecting()
         ret = mbedtls_ssl_handshake_step( &_ssl );
         if( MBEDTLS_ERR_SSL_WANT_READ == ret ){
             ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
+        }
+        if(MBEDTLS_ERR_SSL_TIMEOUT == ret ||
+           MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO == ret ||
+           MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE == ret ||
+           MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST == ret ||
+           MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE == ret ||
+           MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE == ret ||
+           MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC == ret ||
+           MBEDTLS_ERR_SSL_BAD_HS_FINISHED == ret) {
+            return MBEDTLS_ERR_SSL_TIMEOUT;
         }
         if( _ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER ){
             return 0;
@@ -344,6 +371,9 @@ int entropy_poll( void *, unsigned char *output, size_t len,
 
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
     M2MTimer* timer = (M2MTimer*) data;
+    if(!timer) {
+        return;
+    }
     if( int_ms > 0 && fin_ms > 0 ){
         cancelled = false;
         timer->start_dtls_timer(int_ms, fin_ms);
@@ -355,11 +385,15 @@ void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
 
 int mbedtls_timing_get_delay( void *data ){
     M2MTimer* timer = (M2MTimer*) data;
-
-    if( timer->is_intermediate_interval_passed() ){
-        return 1;
-    }else if( timer->is_total_interval_passed() ){
+    if(!timer){
+        return 0;
+    }
+    if(true == cancelled) {
+        return -1;
+    } else if( timer->is_total_interval_passed() ){
         return 2;
+    }else if( timer->is_intermediate_interval_passed() ){
+        return 1;
     }else{
         return 0;
     }

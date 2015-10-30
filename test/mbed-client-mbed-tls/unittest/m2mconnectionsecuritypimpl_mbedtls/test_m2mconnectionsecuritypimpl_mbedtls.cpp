@@ -19,8 +19,7 @@
 #include "m2msecurity.h"
 #include "m2msecurity_stub.h"
 #include "mbedtls_stub.h"
-#include "m2mconnectionhandler.h"
-//#include "mbed-client-mbed-os/m2mconnectionhandlerpimpl.h"
+#include "mbed-client/m2mconnectionhandler.h"
 #include "m2mtimer_stub.h"
 
 class TestObserver : public M2MConnectionObserver {
@@ -189,6 +188,27 @@ void Test_M2MConnectionSecurityPimpl::test_connect()
     mbedtls_stub::counter = 0;
     mbedtls_stub::expected_uint32_value = 0;
     CHECK( 0 == impl.connect(NULL));
+
+    //Tests mbedtls_timing_get_delay() for intermediate case
+    mbedtls_stub::counter = 0;
+    m2mtimer_stub::total_bool_value = false;
+    m2mtimer_stub::bool_value = true;
+    mbedtls_stub::expected_uint32_value = 1;
+
+    CHECK( -1 == impl.connect(obj));
+
+    //Tests mbedtls_timing_get_delay() for cancelled case
+    mbedtls_stub::invalidate_timer = true;
+
+    mbedtls_stub::counter = 0;
+    m2mtimer_stub::total_bool_value = true;
+    CHECK( -1 == impl.connect(obj));
+
+    //Tests mbedtls_timing_get_delay() for NULL case
+    mbedtls_stub::counter = 0;
+    delete(impl._timmer);
+    impl._timmer = NULL;
+    CHECK( -1 == impl.connect(obj));
 }
 
 void Test_M2MConnectionSecurityPimpl::test_start_connecting_non_blocking()
@@ -293,5 +313,15 @@ void Test_M2MConnectionSecurityPimpl::test_timer_expired()
     mbedtls_stub::retArray[3] = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
     impl.connect(NULL);
 
+    void *bio = malloc(1);
+    impl._ssl.p_bio = bio;
     impl.timer_expired(M2MTimerObserver::Dtls);
+
+    // For testing blocking mode use case
+    mbedtls_stub::useCounter = false;
+    mbedtls_stub::expected_int = MBEDTLS_ERR_SSL_TIMEOUT;
+    impl._is_blocking = false;
+
+    impl.timer_expired(M2MTimerObserver::Dtls);
+    free(bio);
 }
