@@ -254,3 +254,8 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx )
 
 }
 
+void mbedtls_ssl_config_free( mbedtls_ssl_config * )
+{
+
+}
+
