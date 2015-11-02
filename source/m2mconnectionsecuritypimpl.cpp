@@ -47,6 +47,8 @@ M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::Se
 }
 
 M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
+    mbedtls_ssl_config_free(&_conf);
+    mbedtls_ssl_free(&_ssl);
     delete _timmer;
 }
 
@@ -70,10 +72,9 @@ void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
 void M2MConnectionSecurityPimpl::reset(){
     _init_done = false;
     cancelled = true;
+    mbedtls_ssl_config_free(&_conf);
+    mbedtls_ssl_free(&_ssl);
     _timmer->stop_timer();
-//    int ret = -1;
-//    do ret = mbedtls_ssl_close_notify( &_ssl );
-//    while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 }
 
 int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
