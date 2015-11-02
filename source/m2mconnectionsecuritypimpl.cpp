@@ -260,7 +260,7 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
     }
 
     // This is for non-blocking sockets total timeout is 1+2+4+8+16+29=60 seconds
-    mbedtls_ssl_conf_handshake_timeout( &_conf, 1000, 29000 );
+    mbedtls_ssl_conf_handshake_timeout( &_conf, 10000, 29000 );
     mbedtls_ssl_conf_rng( &_conf, mbedtls_ctr_drbg_random, &_ctr_drbg );
 
     if( ( ret = mbedtls_ssl_setup( &_ssl, &_conf ) ) != 0 )
