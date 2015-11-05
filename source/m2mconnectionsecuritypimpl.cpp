@@ -49,6 +49,10 @@ M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::Se
 M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
     mbedtls_ssl_config_free(&_conf);
     mbedtls_ssl_free(&_ssl);
+    mbedtls_x509_crt_free(&_cacert);
+    mbedtls_x509_crt_free(&_owncert);
+    mbedtls_pk_free(&_pkey);
+    mbedtls_ctr_drbg_free( &_ctr_drbg );
     delete _timmer;
 }
 
@@ -74,6 +78,10 @@ void M2MConnectionSecurityPimpl::reset(){
     cancelled = true;
     mbedtls_ssl_config_free(&_conf);
     mbedtls_ssl_free(&_ssl);
+    mbedtls_x509_crt_free(&_cacert);
+    mbedtls_x509_crt_free(&_owncert);
+    mbedtls_pk_free(&_pkey);
+    mbedtls_ctr_drbg_free( &_ctr_drbg );
     _timmer->stop_timer();
 }
 
