@@ -191,6 +191,10 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context * ){
 
 }
 
+void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context * ){
+
+}
+
 int mbedtls_ctr_drbg_random_with_add( void *,
                               unsigned char *, size_t ,
                               const unsigned char *, size_t  ){
@@ -204,6 +208,10 @@ int mbedtls_ctr_drbg_random( void *p_rng,
 
 //From x509_crt.h
 void mbedtls_x509_crt_init( mbedtls_x509_crt * ){
+
+}
+
+void mbedtls_x509_crt_free( mbedtls_x509_crt * ){
 
 }
 
@@ -250,6 +258,11 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *,
 }
 
 void mbedtls_pk_init( mbedtls_pk_context *ctx )
+{
+
+}
+
+void mbedtls_pk_free( mbedtls_pk_context *ctx )
 {
 
 }
