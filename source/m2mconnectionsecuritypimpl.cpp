@@ -117,7 +117,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
         }
 
 
-        if( mbedtls_entropy_add_source( &entropy, entropy_poll, NULL,
+        if( mbedtls_entropy_add_source( &_entropy, entropy_poll, NULL,
                                     128, 0 ) < 0 ){
             free(serPub);
             free(pubCert);
