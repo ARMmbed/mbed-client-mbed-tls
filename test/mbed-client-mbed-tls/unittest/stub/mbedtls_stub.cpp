@@ -26,7 +26,7 @@ bool mbedtls_stub::invalidate_timer;
 
 void mbedtls_stub::clear()
 {
-    mbedtls_stub::useCounter = false;    
+    mbedtls_stub::useCounter = false;
     counter = 0;
     expected_int = -1;
     crt_expected_int = -1;
@@ -224,6 +224,10 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *, const unsigned char *, size_t  )
 
 //From entropy.h
 void mbedtls_entropy_init( mbedtls_entropy_context * ){
+
+}
+
+void mbedtls_entropy_free( mbedtls_entropy_context *ctx ){
 
 }
 
