@@ -125,7 +125,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
             return -1;
         }
 
-        if( ( ret = mbedtls_ctr_drbg_seed( &_ctr_drbg, mbedtls_entropy_func, &entropy,
+        if( ( ret = mbedtls_ctr_drbg_seed( &_ctr_drbg, mbedtls_entropy_func, &_entropy,
                                    (const unsigned char *) pers,
                                    strlen( pers ) ) ) != 0 )
         {
