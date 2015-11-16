@@ -44,11 +44,17 @@ M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::Se
     mbedtls_x509_crt_init(&_owncert);
     mbedtls_pk_init(&_pkey);
     mbedtls_ctr_drbg_init( &_ctr_drbg );
+    mbedtls_entropy_init( &_entropy );
 }
 
 M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
     mbedtls_ssl_config_free(&_conf);
     mbedtls_ssl_free(&_ssl);
+    mbedtls_x509_crt_free(&_cacert);
+    mbedtls_x509_crt_free(&_owncert);
+    mbedtls_pk_free(&_pkey);
+    mbedtls_ctr_drbg_free( &_ctr_drbg );
+    mbedtls_entropy_free( &_entropy );
     delete _timmer;
 }
 
@@ -74,6 +80,11 @@ void M2MConnectionSecurityPimpl::reset(){
     cancelled = true;
     mbedtls_ssl_config_free(&_conf);
     mbedtls_ssl_free(&_ssl);
+    mbedtls_x509_crt_free(&_cacert);
+    mbedtls_x509_crt_free(&_owncert);
+    mbedtls_pk_free(&_pkey);
+    mbedtls_ctr_drbg_free( &_ctr_drbg );
+    mbedtls_entropy_free( &_entropy );
     _timmer->stop_timer();
 }
 
@@ -81,8 +92,6 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
     int ret=-1;
     if( security != NULL ){
         const char *pers = "dtls_client";
-        mbedtls_entropy_context entropy;
-
         mbedtls_ssl_init( &_ssl );
         mbedtls_ssl_config_init( &_conf );
         mbedtls_x509_crt_init( &_cacert );
@@ -90,7 +99,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
         mbedtls_pk_init(&_pkey);
         mbedtls_ctr_drbg_init( &_ctr_drbg );
 
-        mbedtls_entropy_init( &entropy );
+        mbedtls_entropy_init( &_entropy );
 
         uint8_t *serPub = 0;
         uint32_t serPubSize = security->resource_value_buffer(M2MSecurity::ServerPublicKey, serPub);
@@ -108,7 +117,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
         }
 
 
-        if( mbedtls_entropy_add_source( &entropy, entropy_poll, NULL,
+        if( mbedtls_entropy_add_source( &_entropy, entropy_poll, NULL,
                                     128, 0 ) < 0 ){
             free(serPub);
             free(pubCert);
@@ -116,7 +125,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
             return -1;
         }
 
-        if( ( ret = mbedtls_ctr_drbg_seed( &_ctr_drbg, mbedtls_entropy_func, &entropy,
+        if( ( ret = mbedtls_ctr_drbg_seed( &_ctr_drbg, mbedtls_entropy_func, &_entropy,
                                    (const unsigned char *) pers,
                                    strlen( pers ) ) ) != 0 )
         {

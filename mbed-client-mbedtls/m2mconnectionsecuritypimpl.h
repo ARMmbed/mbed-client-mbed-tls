@@ -79,6 +79,8 @@ private:
     mbedtls_pk_context          _pkey;
 
     mbedtls_ctr_drbg_context    _ctr_drbg;
+    mbedtls_entropy_context     _entropy;
+
     uint32_t                    _flags;
     M2MTimer                    *_timmer;
 

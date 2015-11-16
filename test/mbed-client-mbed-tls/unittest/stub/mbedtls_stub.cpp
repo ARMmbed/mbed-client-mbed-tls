@@ -26,7 +26,7 @@ bool mbedtls_stub::invalidate_timer;
 
 void mbedtls_stub::clear()
 {
-    mbedtls_stub::useCounter = false;    
+    mbedtls_stub::useCounter = false;
     counter = 0;
     expected_int = -1;
     crt_expected_int = -1;
@@ -191,6 +191,10 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context * ){
 
 }
 
+void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context * ){
+
+}
+
 int mbedtls_ctr_drbg_random_with_add( void *,
                               unsigned char *, size_t ,
                               const unsigned char *, size_t  ){
@@ -207,6 +211,10 @@ void mbedtls_x509_crt_init( mbedtls_x509_crt * ){
 
 }
 
+void mbedtls_x509_crt_free( mbedtls_x509_crt * ){
+
+}
+
 int mbedtls_x509_crt_parse( mbedtls_x509_crt *, const unsigned char *, size_t  ){
     if( mbedtls_stub::useCounter ){
         return mbedtls_stub::retArray[mbedtls_stub::counter++];
@@ -216,6 +224,10 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *, const unsigned char *, size_t  )
 
 //From entropy.h
 void mbedtls_entropy_init( mbedtls_entropy_context * ){
+
+}
+
+void mbedtls_entropy_free( mbedtls_entropy_context *ctx ){
 
 }
 
@@ -250,6 +262,11 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *,
 }
 
 void mbedtls_pk_init( mbedtls_pk_context *ctx )
+{
+
+}
+
+void mbedtls_pk_free( mbedtls_pk_context *ctx )
 {
 
 }
