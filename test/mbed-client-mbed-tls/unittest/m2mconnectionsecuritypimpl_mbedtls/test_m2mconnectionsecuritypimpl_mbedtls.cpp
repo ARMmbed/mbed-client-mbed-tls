@@ -134,6 +134,16 @@ void Test_M2MConnectionSecurityPimpl::test_init()
     mbedtls_stub::retArray[1] = 0;
     mbedtls_stub::retArray[2] = 0;
     mbedtls_stub::retArray[3] = 0;
+    mbedtls_stub::retArray[4] = -1;
+    m2msecurity_stub::int_value = M2MSecurity::Certificate;
+    CHECK( -1 == impl.init(sec) );
+
+    mbedtls_stub::useCounter = true;
+    mbedtls_stub::counter = 0;
+    mbedtls_stub::retArray[0] = 0;
+    mbedtls_stub::retArray[1] = 0;
+    mbedtls_stub::retArray[2] = 0;
+    mbedtls_stub::retArray[3] = 0;
     mbedtls_stub::retArray[4] = 0;
     m2msecurity_stub::int_value = M2MSecurity::Certificate;
     CHECK( 0 == impl.init(sec) );
