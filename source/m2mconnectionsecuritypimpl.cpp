@@ -186,6 +186,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
             mbedtls_ssl_conf_own_cert(&_conf, &_owncert, &_pkey);
             //TODO: use MBEDTLS_SSL_VERIFY_REQUIRED instead of optional
             //MBEDTLS_SSL_VERIFY_NONE to test without verification (was MBEDTLS_SSL_VERIFY_OPTIONAL)
+            mbedtls_ssl_conf_min_version( &_conf, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3 );
             mbedtls_ssl_conf_authmode( &_conf, MBEDTLS_SSL_VERIFY_NONE );
             mbedtls_ssl_conf_ca_chain( &_conf, &_cacert, NULL );
         }else if(security->resource_value_int(M2MSecurity::SecurityMode) == M2MSecurity::Psk ){
