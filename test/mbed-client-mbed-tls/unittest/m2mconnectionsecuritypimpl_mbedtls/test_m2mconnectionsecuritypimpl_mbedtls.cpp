@@ -101,6 +101,7 @@ void Test_M2MConnectionSecurityPimpl::test_init()
     mbedtls_stub::counter = 0;
     mbedtls_stub::retArray[0] = 0;
     mbedtls_stub::retArray[1] = 0;
+    mbedtls_stub::retArray[2] = 0;
     m2msecurity_stub::int_value = M2MSecurity::Psk;
     CHECK( 0 == impl.init(sec) );
 
@@ -108,6 +109,7 @@ void Test_M2MConnectionSecurityPimpl::test_init()
     mbedtls_stub::counter = 0;
     mbedtls_stub::retArray[0] = 0;
     mbedtls_stub::retArray[1] = -1;
+    mbedtls_stub::retArray[2] = -1;
     m2msecurity_stub::int_value = M2MSecurity::Certificate;
     CHECK( -1 == impl.init(sec) );
 
@@ -132,6 +134,17 @@ void Test_M2MConnectionSecurityPimpl::test_init()
     mbedtls_stub::retArray[1] = 0;
     mbedtls_stub::retArray[2] = 0;
     mbedtls_stub::retArray[3] = 0;
+    mbedtls_stub::retArray[4] = -1;
+    m2msecurity_stub::int_value = M2MSecurity::Certificate;
+    CHECK( -1 == impl.init(sec) );
+
+    mbedtls_stub::useCounter = true;
+    mbedtls_stub::counter = 0;
+    mbedtls_stub::retArray[0] = 0;
+    mbedtls_stub::retArray[1] = 0;
+    mbedtls_stub::retArray[2] = 0;
+    mbedtls_stub::retArray[3] = 0;
+    mbedtls_stub::retArray[4] = 0;
     m2msecurity_stub::int_value = M2MSecurity::Certificate;
     CHECK( 0 == impl.init(sec) );
 
@@ -141,6 +154,7 @@ void Test_M2MConnectionSecurityPimpl::test_init()
     mbedtls_stub::retArray[1] = 0;
     mbedtls_stub::retArray[2] = 0;
     mbedtls_stub::retArray[3] = 0;
+    mbedtls_stub::retArray[4] = -1;
     m2msecurity_stub::int_value = 99;
     CHECK( 0 == impl.init(sec) );
 
@@ -166,7 +180,6 @@ void Test_M2MConnectionSecurityPimpl::test_connect()
 
     mbedtls_stub::counter = 0;
     mbedtls_stub::retArray[0] = 0;
-    mbedtls_stub::retArray[1] = 0;
     CHECK( -1 == impl.connect(NULL));
 
     m2mtimer_stub::bool_value = true;

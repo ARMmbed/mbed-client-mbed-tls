@@ -135,6 +135,21 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
             return -1;
         }
 
+        int mode = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
+        if( _sec_mode == M2MConnectionSecurity::TLS ){
+            mode = MBEDTLS_SSL_TRANSPORT_STREAM;
+        }
+
+        if( ( ret = mbedtls_ssl_config_defaults( &_conf,
+                           MBEDTLS_SSL_IS_CLIENT,
+                           mode, 0 ) ) != 0 )
+        {
+            free(serPub);
+            free(pubCert);
+            free(secKey);
+            return -1;
+        }
+
         if( security->resource_value_int(M2MSecurity::SecurityMode) == M2MSecurity::Certificate ){
 
             ret = mbedtls_x509_crt_parse( &_cacert, (const unsigned char *) serPub,
@@ -200,17 +215,7 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
     }
 
     _is_blocking = true;
-    int mode = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
-    if( _sec_mode == M2MConnectionSecurity::TLS ){
-        mode = MBEDTLS_SSL_TRANSPORT_STREAM;
-    }
 
-    if( ( ret = mbedtls_ssl_config_defaults( &_conf,
-                       MBEDTLS_SSL_IS_CLIENT,
-                       mode, 0 ) ) != 0 )
-    {
-        return -1;
-    }
     // This is for blocking sockets timeout happens once at 60 seconds
     mbedtls_ssl_conf_handshake_timeout( &_conf, 60000, 61000 );
     mbedtls_ssl_conf_rng( &_conf, mbedtls_ctr_drbg_random, &_ctr_drbg );
