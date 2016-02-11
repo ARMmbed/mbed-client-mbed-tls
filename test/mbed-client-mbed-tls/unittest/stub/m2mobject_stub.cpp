@@ -100,18 +100,21 @@ sn_coap_hdr_s* M2MObject::handle_get_request(nsdl_s *,
 
 sn_coap_hdr_s* M2MObject::handle_put_request(nsdl_s *,
                                   sn_coap_hdr_s *,
-                                  M2MObservationHandler *)
+                                  M2MObservationHandler *,
+                                  bool &execute)
 {
+    execute = m2mobject_stub::bool_value;
     return m2mobject_stub::header;
 }
 
 sn_coap_hdr_s* M2MObject::handle_post_request(nsdl_s *,
                                    sn_coap_hdr_s *,
-                                   M2MObservationHandler *)
+                                   M2MObservationHandler *,
+                                   bool &)
 {
     return m2mobject_stub::header;
 }
 
-void M2MObject::notification_update()
+void M2MObject::notification_update(uint16_t obj_instance_id)
 {
 }
