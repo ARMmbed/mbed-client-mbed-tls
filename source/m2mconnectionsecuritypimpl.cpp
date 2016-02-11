@@ -210,6 +210,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
 }
 
 int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
+    tr_debug("M2MConnectionSecurityPimpl::connect");
     int ret=-1;
     if(!_init_done){
         return ret;
@@ -242,6 +243,8 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
     while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
            ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
+    tr_debug("M2MConnectionSecurityPimpl::connect - handshake, ret: %d", ret);
+
     if( ret != 0 )
     {
         ret = -1;
@@ -251,11 +254,13 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
             ret = -1;
         }
     }
+    tr_debug("M2MConnectionSecurityPimpl::connect - out, ret: %d", ret);
     return ret;
 }
 
 int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandler* connHandler)
 {
+    tr_debug("M2MConnectionSecurityPimpl::start_connecting_non_blocking");
     int ret=-1;
     if(!_init_done){
         return ret;
@@ -300,11 +305,13 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
     {
         ret = -1;
     }
+    tr_debug("M2MConnectionSecurityPimpl::start_connecting_non_blocking, ret: %d", ret);
     return ret;
 }
 
 int M2MConnectionSecurityPimpl::continue_connecting()
 {
+    tr_debug("M2MConnectionSecurityPimpl::continue_connecting");
     int ret=-1;
     while( ret != M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ){
         ret = mbedtls_ssl_handshake_step( &_ssl );
@@ -325,6 +332,7 @@ int M2MConnectionSecurityPimpl::continue_connecting()
             return 0;
         }
     }
+    tr_debug("M2MConnectionSecurityPimpl::continue_connecting, ret: %d", ret);
     return ret;
 }
 
