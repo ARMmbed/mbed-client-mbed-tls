@@ -18,6 +18,7 @@
 #include "mbed-client-mbedtls/m2mconnectionsecuritypimpl.h"
 #include "mbed-client/m2mtimer.h"
 #include "mbed-client/m2msecurity.h"
+#include "mbed-client-libservice/ns_trace.h"
 #include <string.h>
 
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms );
@@ -328,6 +329,7 @@ int M2MConnectionSecurityPimpl::continue_connecting()
 }
 
 int M2MConnectionSecurityPimpl::send_message(unsigned char *message, int len){
+    tr_debug("M2MConnectionSecurityPimpl::send_message");
     int ret=-1;
     if(!_init_done){
         return ret;
@@ -337,6 +339,7 @@ int M2MConnectionSecurityPimpl::send_message(unsigned char *message, int len){
     while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
            ret == MBEDTLS_ERR_SSL_WANT_WRITE );
 
+    tr_debug("M2MConnectionSecurityPimpl::send_message - ret: %d", ret);
     return ret; //bytes written
 }
 
