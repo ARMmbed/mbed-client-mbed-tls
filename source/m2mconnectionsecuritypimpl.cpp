@@ -60,7 +60,7 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
 }
 
 void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
-    if(type == M2MTimerObserver::Dtls && !cancelled && !_is_blocking){
+    if(type == M2MTimerObserver::Dtls && !cancelled){
         int error = continue_connecting();
         if(MBEDTLS_ERR_SSL_TIMEOUT == error) {
             if(_ssl.p_bio) {
@@ -218,8 +218,8 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
 
     _is_blocking = true;
 
-    // This is for blocking sockets timeout happens once at 60 seconds
-    mbedtls_ssl_conf_handshake_timeout( &_conf, 60000, 61000 );
+    // Use default handshake timeout values
+    //mbedtls_ssl_conf_handshake_timeout( &_conf, 60000, 61000 );
     mbedtls_ssl_conf_rng( &_conf, mbedtls_ctr_drbg_random, &_ctr_drbg );
 
     if( ( ret = mbedtls_ssl_setup( &_ssl, &_conf ) ) != 0 )
