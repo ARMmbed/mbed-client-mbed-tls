@@ -87,8 +87,6 @@ private:
     M2MConnectionSecurity::SecurityMode _sec_mode;
     bool                        _is_blocking;
 
-    unsigned char               _buf[1024];
-
     friend class Test_M2MConnectionSecurityPimpl;
 };
 
