@@ -21,6 +21,13 @@
 #include "mbed-client-libservice/ns_trace.h"
 #include <string.h>
 
+static void my_debug( void */*ctx*/, int /*level*/,
+                      const char *file, int /*line*/,
+                       const char *str )
+{
+    tr_debug("%s, %s", file,str);
+}
+
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms );
 int mbedtls_timing_get_delay( void *data );
 int entropy_poll( void *data, unsigned char *output, size_t len, size_t *olen );
@@ -61,8 +68,10 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
 
 void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
     if(type == M2MTimerObserver::Dtls && !cancelled){
+        tr_debug("M2MConnectionSecurityPimpl::timer_expired - continue non block");
         int error = continue_connecting();
         if(MBEDTLS_ERR_SSL_TIMEOUT == error) {
+            tr_debug("M2MConnectionSecurityPimpl::timer_expired - timeout");
             if(_ssl.p_bio) {
                 M2MConnectionHandler* ptr = (M2MConnectionHandler*)_ssl.p_bio;
                 ptr->handle_connection_error(4);
@@ -183,7 +192,8 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
             {
                 return -1;
             }
-
+            mbedtls_debug_set_threshold( 4 );
+            mbedtls_ssl_conf_dbg( &_conf, my_debug, NULL );
             mbedtls_ssl_conf_own_cert(&_conf, &_owncert, &_pkey);
             //TODO: use MBEDTLS_SSL_VERIFY_REQUIRED instead of optional
             //MBEDTLS_SSL_VERIFY_NONE to test without verification (was MBEDTLS_SSL_VERIFY_OPTIONAL)
@@ -219,7 +229,7 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
     _is_blocking = true;
 
     // Use default handshake timeout values
-    //mbedtls_ssl_conf_handshake_timeout( &_conf, 60000, 61000 );
+    mbedtls_ssl_conf_handshake_timeout( &_conf, 1000, 60000 );
     mbedtls_ssl_conf_rng( &_conf, mbedtls_ctr_drbg_random, &_ctr_drbg );
 
     if( ( ret = mbedtls_ssl_setup( &_ssl, &_conf ) ) != 0 )
@@ -245,16 +255,15 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
 
     tr_debug("M2MConnectionSecurityPimpl::connect - handshake, ret: %d", ret);
 
-    if( ret != 0 )
-    {
+    if( ret != 0 ) {
         ret = -1;
-    }else{
-        if( ( _flags = mbedtls_ssl_get_verify_result( &_ssl ) ) != 0 )
-        {
+    }else {
+        if( ( _flags = mbedtls_ssl_get_verify_result( &_ssl ) ) != 0 ) {
             ret = -1;
         }
     }
     tr_debug("M2MConnectionSecurityPimpl::connect - out, ret: %d", ret);
+    tr_debug("M2MConnectionSecurityPimpl::connect - out, ret: %d, state: %d", ret, _ssl.state);
     return ret;
 }
 
@@ -396,31 +405,41 @@ int entropy_poll( void *, unsigned char *output, size_t len,
 }
 
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
+    tr_debug("mbedtls_timing_set_delay - intermediate: %d", int_ms);
+    tr_debug("mbedtls_timing_set_delay - final: %d", fin_ms);
     M2MTimer* timer = (M2MTimer*) data;
     if(!timer) {
         return;
     }
     if( int_ms > 0 && fin_ms > 0 ){
+        tr_debug("mbedtls_timing_set_delay - start");
         cancelled = false;
+        timer->stop_timer();
         timer->start_dtls_timer(int_ms, fin_ms);
     }else{
+        tr_debug("mbedtls_timing_set_delay - stop");
         cancelled = true;
         timer->stop_timer();
     }
 }
 
 int mbedtls_timing_get_delay( void *data ){
+    tr_debug("mbedtls_timing_get_delay");
     M2MTimer* timer = (M2MTimer*) data;
     if(!timer){
         return 0;
     }
     if(true == cancelled) {
+        tr_debug("mbedtls_timing_get_delay - ret -1");
         return -1;
     } else if( timer->is_total_interval_passed() ){
+        tr_debug("mbedtls_timing_get_delay - ret 2");
         return 2;
     }else if( timer->is_intermediate_interval_passed() ){
+        tr_debug("mbedtls_timing_get_delay - ret 1");
         return 1;
     }else{
+        tr_debug("mbedtls_timing_get_delay - ret 0");
         return 0;
     }
 }
