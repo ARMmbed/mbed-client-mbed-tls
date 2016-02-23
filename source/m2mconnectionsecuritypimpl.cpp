@@ -21,13 +21,6 @@
 #include "mbed-client-libservice/ns_trace.h"
 #include <string.h>
 
-static void my_debug( void */*ctx*/, int /*level*/,
-                      const char *file, int /*line*/,
-                       const char *str )
-{
-    tr_debug("%s, %s", file,str);
-}
-
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms );
 int mbedtls_timing_get_delay( void *data );
 int entropy_poll( void *data, unsigned char *output, size_t len, size_t *olen );
@@ -192,8 +185,6 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
             {
                 return -1;
             }
-            mbedtls_debug_set_threshold( 4 );
-            mbedtls_ssl_conf_dbg( &_conf, my_debug, NULL );
             mbedtls_ssl_conf_own_cert(&_conf, &_owncert, &_pkey);
             //TODO: use MBEDTLS_SSL_VERIFY_REQUIRED instead of optional
             //MBEDTLS_SSL_VERIFY_NONE to test without verification (was MBEDTLS_SSL_VERIFY_OPTIONAL)
@@ -263,7 +254,6 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
         }
     }
     tr_debug("M2MConnectionSecurityPimpl::connect - out, ret: %d", ret);
-    tr_debug("M2MConnectionSecurityPimpl::connect - out, ret: %d, state: %d", ret, _ssl.state);
     return ret;
 }
 
