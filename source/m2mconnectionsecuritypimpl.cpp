@@ -18,7 +18,7 @@
 #include "mbed-client-mbedtls/m2mconnectionsecuritypimpl.h"
 #include "mbed-client/m2mtimer.h"
 #include "mbed-client/m2msecurity.h"
-#include "mbed-client-libservice/ns_trace.h"
+#include "mbed-trace/mbed_trace.h"
 #include <string.h>
 
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms );
