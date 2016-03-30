@@ -21,6 +21,7 @@ INCLUDE_DIRS =\
   ../../../../yotta_modules/mbedtls\
   ../../../../yotta_modules/mbed-client-mbed-os\
   ../../../../yotta_modules/nanostack-libservice\
+  ../../../../yotta_modules/mbed-trace\
   /usr/include\
   $(CPPUTEST_HOME)/include\
 
