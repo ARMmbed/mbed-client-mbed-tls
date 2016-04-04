@@ -21,6 +21,8 @@
 #include "mbed-trace/mbed_trace.h"
 #include <string.h>
 
+#define TRACEW_GROUP "mClt"
+
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms );
 int mbedtls_timing_get_delay( void *data );
 int entropy_poll( void *data, unsigned char *output, size_t len, size_t *olen );
@@ -71,6 +73,7 @@ void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
             }
         }
     } else {
+        tr_debug("M2MConnectionSecurityPimpl::timer_expired connection error");
         if(_ssl.p_bio) {
             M2MConnectionHandler* ptr = (M2MConnectionHandler*)_ssl.p_bio;
             ptr->handle_connection_error(4);
