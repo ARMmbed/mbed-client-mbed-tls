@@ -38,7 +38,7 @@ M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::Se
 {
     _init_done = false;
     cancelled = true;
-    _timmer = new M2MTimer(*this);
+    _timer = new M2MTimer(*this);
     mbedtls_ssl_init( &_ssl );
     mbedtls_ssl_config_init( &_conf );
     mbedtls_x509_crt_init( &_cacert );
@@ -56,7 +56,7 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
     mbedtls_pk_free(&_pkey);
     mbedtls_ctr_drbg_free( &_ctr_drbg );
     mbedtls_entropy_free( &_entropy );
-    delete _timmer;
+    delete _timer;
 }
 
 void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
@@ -88,7 +88,7 @@ void M2MConnectionSecurityPimpl::reset(){
     mbedtls_pk_free(&_pkey);
     mbedtls_ctr_drbg_free( &_ctr_drbg );
     mbedtls_entropy_free( &_entropy );
-    _timmer->stop_timer();
+    _timer->stop_timer();
 }
 
 int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
@@ -228,25 +228,28 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
        return -1;
     }
 
-    //TODO: check is this needed
-//    if( ( ret = mbedtls_ssl_set_hostname( &_ssl, "linux-secure-endpoint" ) ) != 0 )
-//    {
-//       return -1;
-//    }
-
     mbedtls_ssl_set_bio( &_ssl, connHandler,
                         f_send, f_recv, f_recv_timeout );
 
-    mbedtls_ssl_set_timer_cb( &_ssl, _timmer, mbedtls_timing_set_delay,
+    mbedtls_ssl_set_timer_cb( &_ssl, _timer, mbedtls_timing_set_delay,
                                             mbedtls_timing_get_delay );
 
-    do ret = mbedtls_ssl_handshake( &_ssl );
+    int retry_count = 0;
+    do
+    {
+       ret = mbedtls_ssl_handshake( &_ssl );
+       if (ret == -1) {
+           mbedtls_ssl_session_reset( &_ssl );
+           retry_count++;
+           tr_error("M2MConnectionSecurityPimpl::connect - start handshake again");
+       }
+    }
     while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
-
-    tr_debug("M2MConnectionSecurityPimpl::connect - handshake, ret: %d", ret);
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
+           (ret == -1 && retry_count <= RETRY_COUNT));
 
     if( ret != 0 ) {
+        tr_error("M2MConnectionSecurityPimpl::connect - handshake failed");
         ret = -1;
     }else {
         if( ( _flags = mbedtls_ssl_get_verify_result( &_ssl ) ) != 0 ) {
@@ -290,7 +293,7 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
     mbedtls_ssl_set_bio( &_ssl, connHandler,
                         f_send, f_recv, f_recv_timeout );
 
-    mbedtls_ssl_set_timer_cb( &_ssl, _timmer, mbedtls_timing_set_delay,
+    mbedtls_ssl_set_timer_cb( &_ssl, _timer, mbedtls_timing_set_delay,
                                             mbedtls_timing_get_delay );
 
     ret = mbedtls_ssl_handshake_step( &_ssl );
