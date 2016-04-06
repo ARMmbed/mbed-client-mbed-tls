@@ -71,6 +71,10 @@ void mbedtls_ssl_free( mbedtls_ssl_context * ){
 
 }
 
+int mbedtls_ssl_session_reset( mbedtls_ssl_context * ){
+
+}
+
 int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *,
                               mbedtls_x509_crt *,
                               mbedtls_pk_context * ){

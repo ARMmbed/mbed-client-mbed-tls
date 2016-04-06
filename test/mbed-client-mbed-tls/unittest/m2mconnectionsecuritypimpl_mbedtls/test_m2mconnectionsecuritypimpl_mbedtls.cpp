@@ -52,7 +52,7 @@ Test_M2MConnectionSecurityPimpl::~Test_M2MConnectionSecurityPimpl()
 void Test_M2MConnectionSecurityPimpl::test_constructor()
 {
     M2MConnectionSecurityPimpl impl = M2MConnectionSecurityPimpl(M2MConnectionSecurity::TLS);
-    CHECK(impl._timmer != NULL);
+    CHECK(impl._timer != NULL);
 }
 
 void Test_M2MConnectionSecurityPimpl::test_destructor()
@@ -219,8 +219,8 @@ void Test_M2MConnectionSecurityPimpl::test_connect()
 
     //Tests mbedtls_timing_get_delay() for NULL case
     mbedtls_stub::counter = 0;
-    delete(impl._timmer);
-    impl._timmer = NULL;
+    delete(impl._timer);
+    impl._timer = NULL;
     CHECK( -1 == impl.connect(obj));
 }
 
