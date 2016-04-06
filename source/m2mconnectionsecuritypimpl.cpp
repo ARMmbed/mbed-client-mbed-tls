@@ -21,7 +21,7 @@
 #include "mbed-trace/mbed_trace.h"
 #include <string.h>
 
-#define TRACEW_GROUP "mClt"
+#define TRACE_GROUP "mClt"
 
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms );
 int mbedtls_timing_get_delay( void *data );
