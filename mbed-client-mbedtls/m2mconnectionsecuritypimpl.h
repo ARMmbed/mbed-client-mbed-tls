@@ -19,6 +19,7 @@
 
 #include "mbed-client/m2mconnectionsecurity.h"
 #include "mbed-client/m2mtimerobserver.h"
+#include "mbed-client/m2mconstants.h"
 
 #include "mbedtls/config.h"
 #include "mbedtls/debug.h"
@@ -82,7 +83,7 @@ private:
     mbedtls_entropy_context     _entropy;
 
     uint32_t                    _flags;
-    M2MTimer                    *_timmer;
+    M2MTimer                    *_timer;
 
     M2MConnectionSecurity::SecurityMode _sec_mode;
     bool                        _is_blocking;
