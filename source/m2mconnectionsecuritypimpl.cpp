@@ -232,24 +232,16 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
     }
 
     mbedtls_ssl_set_bio( &_ssl, connHandler,
-                        f_send, f_recv, f_recv_timeout );
+                        f_send, NULL, f_recv_timeout );
 
     mbedtls_ssl_set_timer_cb( &_ssl, _timer, mbedtls_timing_set_delay,
                                             mbedtls_timing_get_delay );
 
-    int retry_count = 0;
-    do
-    {
-       ret = mbedtls_ssl_handshake( &_ssl );
-       if (ret == -1) {
-           mbedtls_ssl_session_reset( &_ssl );
-           retry_count++;
-           tr_error("M2MConnectionSecurityPimpl::connect - start handshake again");
-       }
-    }
+    do ret = mbedtls_ssl_handshake( &_ssl );
     while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-           ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
-           (ret == -1 && retry_count <= RETRY_COUNT));
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+
+    tr_debug("M2MConnectionSecurityPimpl::connect - handshake, ret: %d", ret);
 
     if( ret != 0 ) {
         tr_error("M2MConnectionSecurityPimpl::connect - handshake failed");
@@ -294,7 +286,7 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
     }
 
     mbedtls_ssl_set_bio( &_ssl, connHandler,
-                        f_send, f_recv, f_recv_timeout );
+                        f_send, f_recv, NULL );
 
     mbedtls_ssl_set_timer_cb( &_ssl, _timer, mbedtls_timing_set_delay,
                                             mbedtls_timing_get_delay );
@@ -380,8 +372,9 @@ int f_recv(void *ctx, unsigned char *buf, size_t len){
     return handler->receive_from_socket(buf, len);
 }
 
-int f_recv_timeout(void *ctx, unsigned char *buf, size_t len, uint32_t /*some*/){
-    return f_recv(ctx, buf, len);
+int f_recv_timeout(void *ctx, unsigned char *buf, size_t len, uint32_t timeout){
+    M2MConnectionHandler* handler = ((M2MConnectionHandler *) ctx);
+    return handler->receive_from_socket(buf, len, timeout);
 }
 
 int entropy_poll( void *, unsigned char *output, size_t len,
