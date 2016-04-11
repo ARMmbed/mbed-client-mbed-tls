@@ -413,7 +413,7 @@ int entropy_poll( void *, unsigned char *output, size_t len,
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
     tr_debug("mbedtls_timing_set_delay - intermediate: %d", int_ms);
     tr_debug("mbedtls_timing_set_delay - final: %d", fin_ms);
-    M2MTimer* timer = (M2MTimer*) data;
+    M2MTimer* timer = static_cast<M2MTimer*> (data);
     if(!timer) {
         return;
     }
@@ -431,7 +431,7 @@ void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
 
 int mbedtls_timing_get_delay( void *data ){
     tr_debug("mbedtls_timing_get_delay");
-    M2MTimer* timer = (M2MTimer*) data;
+    M2MTimer* timer = static_cast<M2MTimer*> (data);
     if(!timer){
         return 0;
     }
