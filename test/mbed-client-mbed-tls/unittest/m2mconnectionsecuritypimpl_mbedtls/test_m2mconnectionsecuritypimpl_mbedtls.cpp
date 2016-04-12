@@ -153,10 +153,17 @@ void Test_M2MConnectionSecurityPimpl::test_init()
     mbedtls_stub::retArray[0] = 0;
     mbedtls_stub::retArray[1] = 0;
     mbedtls_stub::retArray[2] = 0;
-    mbedtls_stub::retArray[3] = 0;
-    mbedtls_stub::retArray[4] = -1;
     m2msecurity_stub::int_value = 99;
-    CHECK( 0 == impl.init(sec) );
+    CHECK( -1 == impl.init(sec) );
+
+    m2msecurity_stub::int_value = 5;
+    m2msecurity_stub::has_value = false;
+    mbedtls_stub::useCounter = false;
+    mbedtls_stub::expected_int = 0;
+    mbedtls_stub::crt_expected_int = 0;
+    m2msecurity_stub::int_value = M2MSecurity::Certificate;
+    CHECK( -1 == impl.init(sec) );
+
 
     delete sec;
 }
@@ -333,7 +340,6 @@ void Test_M2MConnectionSecurityPimpl::test_timer_expired()
     // For testing blocking mode use case
     mbedtls_stub::useCounter = false;
     mbedtls_stub::expected_int = MBEDTLS_ERR_SSL_TIMEOUT;
-    impl._is_blocking = false;
 
     impl.timer_expired(M2MTimerObserver::Dtls);
     free(bio);

@@ -119,12 +119,6 @@ private:
 
     int start_handshake();
 
-    int init_ssl();
-
-    int read_security_keys(const M2MSecurity *security);
-
-    void free_keys();
-
 private:
 
     bool                        _init_done;
@@ -138,15 +132,7 @@ private:
     uint32_t                    _flags;
     M2MTimer                    *_timer;
     M2MConnectionSecurity::SecurityMode _sec_mode;
-    bool                        _is_blocking;
     int                         _retry_count;
-    uint8_t                     *_srv_public_key;
-    uint8_t                     *_public_key;
-    uint8_t                     *_sec_key;
-    uint32_t                    _srv_public_key_size;
-    uint32_t                    _public_key_size;
-    uint32_t                    _sec_key_size;
-    M2MSecurity::SecurityModeType   _cert_mode;
 
     friend class Test_M2MConnectionSecurityPimpl;
 };
