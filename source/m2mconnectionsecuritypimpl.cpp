@@ -35,8 +35,7 @@ bool cancelled;
 
 M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
   : _flags(0),
-    _sec_mode(mode),
-    _retry_count(0)
+    _sec_mode(mode)
 {
     _init_done = false;
     cancelled = true;

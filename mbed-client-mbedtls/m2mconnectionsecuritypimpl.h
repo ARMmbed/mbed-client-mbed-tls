@@ -132,7 +132,6 @@ private:
     uint32_t                    _flags;
     M2MTimer                    *_timer;
     M2MConnectionSecurity::SecurityMode _sec_mode;
-    int                         _retry_count;
 
     friend class Test_M2MConnectionSecurityPimpl;
 };
