@@ -331,7 +331,8 @@ int M2MConnectionSecurityPimpl::send_message(unsigned char *message, int len){
 int M2MConnectionSecurityPimpl::read(unsigned char* buffer, uint16_t len){
     int ret=-1;
     if(!_init_done){
-        return 0;
+        tr_error("M2MConnectionSecurityPimpl::read - init not done!");
+        return ret;
     }
 
     memset( buffer, 0, len );
