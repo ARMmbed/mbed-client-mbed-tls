@@ -307,7 +307,7 @@ void Test_M2MConnectionSecurityPimpl::test_read()
 {
     M2MConnectionSecurityPimpl impl = M2MConnectionSecurityPimpl(M2MConnectionSecurity::TLS);
     unsigned char msg[50];
-    CHECK( 0 == impl.read(msg, 49));
+    CHECK( -1 == impl.read(msg, 49));
 
     impl._init_done = true;
     mbedtls_stub::useCounter = true;
