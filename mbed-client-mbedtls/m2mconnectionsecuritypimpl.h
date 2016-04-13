@@ -20,6 +20,7 @@
 #include "mbed-client/m2mconnectionsecurity.h"
 #include "mbed-client/m2mtimerobserver.h"
 #include "mbed-client/m2mconstants.h"
+#include "mbed-client/m2msecurity.h"
 
 #include "mbedtls/config.h"
 #include "mbedtls/debug.h"
@@ -30,7 +31,6 @@
 #include "mbedtls/certs.h"
 #include "mbedtls/entropy_poll.h"
 
-class M2MSecurity;
 class M2MTimer;
 
 //TODO: Should we let application to select these or not??
@@ -41,54 +41,97 @@ const static int PSK_SUITES[] = {
     0
 };
 
-
+/**
+ * @brief The M2MConnectionSecurityPimpl class
+ */
 class M2MConnectionSecurityPimpl : public M2MTimerObserver {
+
 private:
+
     // Prevents the use of assignment operator by accident.
     M2MConnectionSecurityPimpl& operator=( const M2MConnectionSecurityPimpl& /*other*/ );
     // Prevents the use of copy constructor by accident
     M2MConnectionSecurityPimpl( const M2MConnectionSecurityPimpl& /*other*/ );
 
 public:
+
+    /**
+     * @brief Constructor
+     */
     M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode);
 
+    /**
+    * @brief Destructor
+    */
     virtual ~M2MConnectionSecurityPimpl();
 
+    /**
+     * \brief Resets the socket connection states.
+     */
     void reset();
 
+    /**
+     * \brief Initiatlizes the socket connection states.
+     */
     int init(const M2MSecurity *security);
 
+    /**
+     * \brief Starts the connection in non-blocking mode.
+     * \param connHandler The ConnectionHandler object that maintains the socket.
+     * \return Returns the state of the connection. Successful or not.
+     */
     int start_connecting_non_blocking(M2MConnectionHandler* connHandler);
+
+    /**
+     * \brief Continues connectivity logic for secure connection.
+     * \return Returns an error code if any while continuing the connection sequence.
+     */
     int continue_connecting();
 
+    /**
+     * \brief Connects the client to the server.
+     * \param connHandler The ConnectionHandler object that maintains the socket.
+     * \return Returns the state of the connection. Successful or not.
+     */
     int connect(M2MConnectionHandler* connHandler);
 
+    /**
+     * \brief Sends data to the server.
+     * \param message The data to be sent.
+     * \param len The length of the data.
+     * @return Indicates whether the data is sent successfully or not.
+     */
     int send_message(unsigned char *message, int len);
 
+    /**
+     * \brief Reads the data received from the server.
+     * \param message The data to be read.
+     * \param len The length of the data.
+     * \return Indicates whether the data is read successfully or not.
+     */
     int read(unsigned char* buffer, uint16_t len);
 
-public: //From M2MTimerObserver
+protected: //From M2MTimerObserver
+
     virtual void timer_expired(M2MTimerObserver::Type type);
 
 private:
+
+    int start_handshake();
+
+private:
+
     bool                        _init_done;
     mbedtls_ssl_config          _conf;
     mbedtls_ssl_context         _ssl;
-
     mbedtls_x509_crt            _cacert;
     mbedtls_x509_crt            _owncert;
     mbedtls_pk_context          _pkey;
-
     mbedtls_ctr_drbg_context    _ctr_drbg;
     mbedtls_entropy_context     _entropy;
-
     uint32_t                    _flags;
     M2MTimer                    *_timer;
-
     M2MConnectionSecurity::SecurityMode _sec_mode;
-    bool                        _is_blocking;
-
-    unsigned char               _buf[1024];
 
     friend class Test_M2MConnectionSecurityPimpl;
 };

@@ -35,8 +35,7 @@ bool cancelled;
 
 M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
   : _flags(0),
-    _sec_mode(mode),
-    _is_blocking(false)
+    _sec_mode(mode)
 {
     _init_done = false;
     cancelled = true;
@@ -58,25 +57,25 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
     mbedtls_pk_free(&_pkey);
     mbedtls_ctr_drbg_free( &_ctr_drbg );
     mbedtls_entropy_free( &_entropy );
-    delete _timer;
+    delete _timer; 
 }
 
 void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
+    tr_debug("M2MConnectionSecurityPimpl::timer_expired");
     if(type == M2MTimerObserver::Dtls && !cancelled){
-        tr_debug("M2MConnectionSecurityPimpl::timer_expired - continue non block");
         int error = continue_connecting();
         if(MBEDTLS_ERR_SSL_TIMEOUT == error) {
-            tr_debug("M2MConnectionSecurityPimpl::timer_expired - timeout");
+            tr_debug("M2MConnectionSecurityPimpl::timer_expired - DTLS timeout");
             if(_ssl.p_bio) {
                 M2MConnectionHandler* ptr = (M2MConnectionHandler*)_ssl.p_bio;
-                ptr->handle_connection_error(4);
+                ptr->handle_connection_error(int(M2MInterface::Timeout));
             }
         }
     } else {
         tr_debug("M2MConnectionSecurityPimpl::timer_expired connection error");
         if(_ssl.p_bio) {
             M2MConnectionHandler* ptr = (M2MConnectionHandler*)_ssl.p_bio;
-            ptr->handle_connection_error(4);
+            ptr->handle_connection_error(int(M2MInterface::Timeout));
         }
     }
 }
@@ -94,9 +93,11 @@ void M2MConnectionSecurityPimpl::reset(){
     _timer->stop_timer();
 }
 
-int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
-    int ret=-1;
-    if( security != NULL ){
+int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
+{
+    tr_debug("M2MConnectionSecurityPimpl::init");
+    int ret = -1;
+    if (security != NULL) {
         const char *pers = "dtls_client";
         mbedtls_ssl_init( &_ssl );
         mbedtls_ssl_config_init( &_conf );
@@ -104,147 +105,95 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security){
         mbedtls_x509_crt_init(&_owncert);
         mbedtls_pk_init(&_pkey);
         mbedtls_ctr_drbg_init( &_ctr_drbg );
-
         mbedtls_entropy_init( &_entropy );
-
-        uint8_t *serPub = 0;
-        uint32_t serPubSize = security->resource_value_buffer(M2MSecurity::ServerPublicKey, serPub);
-
-        uint8_t *pubCert = 0;
-        uint32_t pubCertSize = security->resource_value_buffer(M2MSecurity::PublicKey, pubCert);
-
-        uint8_t *secKey = 0;
-        uint32_t secKeySize = security->resource_value_buffer(M2MSecurity::Secretkey, secKey);
-
-
-        if( serPub == NULL || pubCert == NULL || secKey == NULL ||
-            serPubSize == 0 || pubCertSize == 0 || secKeySize == 0 ){
-            return -1;
-        }
-
-
-        if( mbedtls_entropy_add_source( &_entropy, entropy_poll, NULL,
-                                    128, 0 ) < 0 ){
-            free(serPub);
-            free(pubCert);
-            free(secKey);
-            return -1;
-        }
-
-        if( ( ret = mbedtls_ctr_drbg_seed( &_ctr_drbg, mbedtls_entropy_func, &_entropy,
-                                   (const unsigned char *) pers,
-                                   strlen( pers ) ) ) != 0 )
-        {
-            free(serPub);
-            free(pubCert);
-            free(secKey);
-            return -1;
-        }
 
         int mode = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
         if( _sec_mode == M2MConnectionSecurity::TLS ){
             mode = MBEDTLS_SSL_TRANSPORT_STREAM;
         }
 
-        if( ( ret = mbedtls_ssl_config_defaults( &_conf,
-                           MBEDTLS_SSL_IS_CLIENT,
-                           mode, 0 ) ) != 0 )
-        {
-            free(serPub);
-            free(pubCert);
-            free(secKey);
+        if( mbedtls_entropy_add_source( &_entropy, entropy_poll, NULL,
+                                    128, 0 ) < 0 ){
             return -1;
         }
 
-        if( security->resource_value_int(M2MSecurity::SecurityMode) == M2MSecurity::Certificate ){
+        if( mbedtls_ctr_drbg_seed( &_ctr_drbg, mbedtls_entropy_func, &_entropy,
+                                   (const unsigned char *) pers,
+                                   strlen( pers ) )  != 0 ) {
+            return -1;
+        }
 
-            ret = mbedtls_x509_crt_parse( &_cacert, (const unsigned char *) serPub,
-                                      serPubSize );
-            if( ret < 0 )
-            {
-                free(serPub);
-                free(pubCert);
-                free(secKey);
-                return -1;
+        if( mbedtls_ssl_config_defaults( &_conf,
+                           MBEDTLS_SSL_IS_CLIENT,
+                           mode, 0 ) != 0 ) {
+            return -1;
+        }
+
+        M2MSecurity::SecurityModeType cert_mode =
+                (M2MSecurity::SecurityModeType)security->resource_value_int(M2MSecurity::SecurityMode);
+
+        uint8_t *srv_public_key = 0;
+        uint8_t *public_key = 0;
+        uint8_t *sec_key = 0;
+
+        uint32_t srv_public_key_size = security->resource_value_buffer(M2MSecurity::ServerPublicKey, srv_public_key);
+        uint32_t public_key_size = security->resource_value_buffer(M2MSecurity::PublicKey, public_key);
+        uint32_t sec_key_size = security->resource_value_buffer(M2MSecurity::Secretkey, sec_key);
+        if( srv_public_key == NULL || public_key == NULL || sec_key == NULL ||
+            srv_public_key_size == 0 || public_key_size == 0 || sec_key_size == 0 ){
+            return -1;
+        }
+
+        if( cert_mode == M2MSecurity::Certificate ){
+            if ( mbedtls_x509_crt_parse( &_cacert, (const unsigned char *) srv_public_key,
+                    srv_public_key_size ) < 0 ||
+                mbedtls_x509_crt_parse( &_owncert, (const unsigned char *) public_key,
+                    public_key_size ) < 0 ||
+                mbedtls_pk_parse_key(&_pkey, (const unsigned char *) sec_key,
+                    sec_key_size, NULL, 0 ) < 0 ) {
+                ret = -1;
+            } else {
+                ret = 0;
             }
 
-            ret = mbedtls_x509_crt_parse( &_owncert, (const unsigned char *) pubCert,
-                                      pubCertSize );
-            if( ret < 0 )
-            {
-
-                free(serPub);
-                free(pubCert);
-                free(secKey);
-                return -1;
+            if ( ret == 0 ) {
+                mbedtls_ssl_conf_own_cert(&_conf, &_owncert, &_pkey);
+                mbedtls_ssl_conf_authmode( &_conf, MBEDTLS_SSL_VERIFY_REQUIRED );
+                mbedtls_ssl_conf_ca_chain( &_conf, &_cacert, NULL );
             }
 
-            ret = mbedtls_pk_parse_key(&_pkey, (const unsigned char *) secKey, secKeySize, NULL, 0);
-            free(serPub);
-            free(pubCert);
-            free(secKey);
-
-            if( ret < 0 )
-            {
-                return -1;
+        } else if ( cert_mode == M2MSecurity::Psk ){
+            if (mbedtls_ssl_conf_psk(&_conf, sec_key, sec_key_size, public_key, public_key_size) == 0) {
+                ret = 0;
             }
-            mbedtls_ssl_conf_own_cert(&_conf, &_owncert, &_pkey);
-            //TODO: use MBEDTLS_SSL_VERIFY_REQUIRED instead of optional
-            //MBEDTLS_SSL_VERIFY_NONE to test without verification (was MBEDTLS_SSL_VERIFY_OPTIONAL)
-            mbedtls_ssl_conf_authmode( &_conf, MBEDTLS_SSL_VERIFY_NONE );
-            mbedtls_ssl_conf_ca_chain( &_conf, &_cacert, NULL );
-        }else if(security->resource_value_int(M2MSecurity::SecurityMode) == M2MSecurity::Psk ){
-            ret = mbedtls_ssl_conf_psk(&_conf, secKey, secKeySize, pubCert, pubCertSize);
             mbedtls_ssl_conf_ciphersuites(&_conf, PSK_SUITES);
-            free(serPub);
-            free(pubCert);
-            free(secKey);
-        }else{
-            free(serPub);
-            free(pubCert);
-            free(secKey);
+        } else {
+            ret = -1;
         }
 
-        if( ret >= 0 ){
-            _init_done = true;
-        }
+        free(srv_public_key);
+        free(public_key);
+        free(sec_key);
     }
 
+    if( ret == 0 ){
+        _init_done = true;
+    }
+    tr_debug("M2MConnectionSecurityPimpl::init - ret %d", ret);
     return ret;
 }
 
-int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
-    tr_debug("M2MConnectionSecurityPimpl::connect");
-    int ret=-1;
-    if(!_init_done){
-        return ret;
-    }
 
-    _is_blocking = true;
-
-    // Use default handshake timeout values
-    mbedtls_ssl_conf_handshake_timeout( &_conf, 1000, 60000 );
-    mbedtls_ssl_conf_rng( &_conf, mbedtls_ctr_drbg_random, &_ctr_drbg );
-
-    if( ( ret = mbedtls_ssl_setup( &_ssl, &_conf ) ) != 0 )
-    {
-       return -1;
-    }
-
-    mbedtls_ssl_set_bio( &_ssl, connHandler,
-                        f_send, f_recv, f_recv_timeout );
-
-    mbedtls_ssl_set_timer_cb( &_ssl, _timer, mbedtls_timing_set_delay,
-                                            mbedtls_timing_get_delay );
-
+int M2MConnectionSecurityPimpl::start_handshake(){
+    tr_debug("M2MConnectionSecurityPimpl::start_handshake");
+    int ret = -1;
     int retry_count = 0;
     do
     {
        ret = mbedtls_ssl_handshake( &_ssl );
        if (ret == -1) {
-           mbedtls_ssl_session_reset( &_ssl );
            retry_count++;
-           tr_error("M2MConnectionSecurityPimpl::connect - start handshake again");
+           tr_debug("M2MConnectionSecurityPimpl::start_handshake - try again");
        }
     }
     while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
@@ -252,14 +201,39 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
            (ret == -1 && retry_count <= RETRY_COUNT));
 
     if( ret != 0 ) {
-        tr_error("M2MConnectionSecurityPimpl::connect - handshake failed");
         ret = -1;
     }else {
         if( ( _flags = mbedtls_ssl_get_verify_result( &_ssl ) ) != 0 ) {
             ret = -1;
         }
     }
-    tr_debug("M2MConnectionSecurityPimpl::connect - out, ret: %d", ret);
+    tr_debug("M2MConnectionSecurityPimpl::start_handshake - OUT");
+    return ret;
+}
+
+int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
+
+    tr_debug("M2MConnectionSecurityPimpl::connect");
+    int ret=-1;
+    if(!_init_done){
+        return ret;
+    }
+
+    mbedtls_ssl_conf_rng( &_conf, mbedtls_ctr_drbg_random, &_ctr_drbg );
+
+    if( ( ret = mbedtls_ssl_setup( &_ssl, &_conf ) ) != 0 ) {
+       return -1;
+    }
+
+    mbedtls_ssl_set_bio( &_ssl, connHandler,
+                        f_send, f_recv, f_recv_timeout );
+
+    mbedtls_ssl_set_timer_cb( &_ssl, _timer, mbedtls_timing_set_delay,
+                              mbedtls_timing_get_delay );
+
+    ret = start_handshake();
+    _timer->stop_timer();
+    tr_debug("M2MConnectionSecurityPimpl::connect - handshake ret: %d, ssl state: %d", ret, _ssl.state);
     return ret;
 }
 
@@ -271,7 +245,6 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
         return ret;
     }
 
-    _is_blocking = false;
     int mode = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
     if( _sec_mode == M2MConnectionSecurity::TLS ){
         mode = MBEDTLS_SSL_TRANSPORT_STREAM;
@@ -306,11 +279,10 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
 
     if( ret >= 0){
         ret = 1;
-    }else
-    {
+    } else {
         ret = -1;
     }
-    tr_debug("M2MConnectionSecurityPimpl::start_connecting_non_blocking, ret: %d", ret);
+    tr_debug("M2MConnectionSecurityPimpl::start_connecting_non_blocking - handshake ret: %d, ssl state: %d", ret, _ssl.state);
     return ret;
 }
 
@@ -319,7 +291,7 @@ int M2MConnectionSecurityPimpl::continue_connecting()
     tr_debug("M2MConnectionSecurityPimpl::continue_connecting");
     int ret=-1;
     while( ret != M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ){
-        ret = mbedtls_ssl_handshake_step( &_ssl );
+        ret = mbedtls_ssl_handshake( &_ssl );
         if( MBEDTLS_ERR_SSL_WANT_READ == ret ){
             ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
         }
@@ -359,7 +331,8 @@ int M2MConnectionSecurityPimpl::send_message(unsigned char *message, int len){
 int M2MConnectionSecurityPimpl::read(unsigned char* buffer, uint16_t len){
     int ret=-1;
     if(!_init_done){
-        return 0;
+        tr_error("M2MConnectionSecurityPimpl::read - init not done!");
+        return ret;
     }
 
     memset( buffer, 0, len );
@@ -403,7 +376,7 @@ int entropy_poll( void *, unsigned char *output, size_t len,
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
     tr_debug("mbedtls_timing_set_delay - intermediate: %d", int_ms);
     tr_debug("mbedtls_timing_set_delay - final: %d", fin_ms);
-    M2MTimer* timer = (M2MTimer*) data;
+    M2MTimer* timer = static_cast<M2MTimer*> (data);
     if(!timer) {
         return;
     }
@@ -421,7 +394,7 @@ void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
 
 int mbedtls_timing_get_delay( void *data ){
     tr_debug("mbedtls_timing_get_delay");
-    M2MTimer* timer = (M2MTimer*) data;
+    M2MTimer* timer = static_cast<M2MTimer*> (data);
     if(!timer){
         return 0;
     }
