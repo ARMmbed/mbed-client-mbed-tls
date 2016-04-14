@@ -3,11 +3,23 @@
 #
 # List of subdirectories to build
 TEST_FOLDER := ./test/
+
+LIB = libmbed-client-mbedtls.a
+
 # List of unit test directories for libraries
 UNITTESTS := $(sort $(dir $(wildcard $(TEST_FOLDER)*/unittest/*)))
 TESTDIRS := $(UNITTESTS:%=build-%)
 CLEANTESTDIRS := $(UNITTESTS:%=clean-%)
 COVERAGEFILE := ./lcov/coverage.info
+
+include sources.mk
+include include_dirs.mk
+
+override CFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
+override CFLAGS += $(addprefix -D,$(FLAGS))
+ifeq ($(DEBUG),1)
+override CFLAGS += -DHAVE_DEBUG
+endif
 
 #
 # Define compiler toolchain
