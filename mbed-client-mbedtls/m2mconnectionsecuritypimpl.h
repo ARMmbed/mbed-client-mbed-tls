@@ -132,6 +132,7 @@ private:
     uint32_t                    _flags;
     M2MTimer                    *_timer;
     M2MConnectionSecurity::SecurityMode _sec_mode;
+    bool                        _is_blocking;
 
     friend class Test_M2MConnectionSecurityPimpl;
 };
