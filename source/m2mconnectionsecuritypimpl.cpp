@@ -35,8 +35,7 @@ bool cancelled;
 
 M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
   : _flags(0),
-    _sec_mode(mode),
-    _is_blocking(false)
+    _sec_mode(mode)
 {
     _init_done = false;
     cancelled = true;
@@ -63,21 +62,14 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
 
 void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
     tr_debug("M2MConnectionSecurityPimpl::timer_expired");
-    if(type == M2MTimerObserver::Dtls && !cancelled && _is_blocking){
-        tr_debug("M2MConnectionSecurityPimpl::timer_expired - continue connecting");
+    if(type == M2MTimerObserver::Dtls && !cancelled){
         int error = continue_connecting();
         if(MBEDTLS_ERR_SSL_TIMEOUT == error) {
-            tr_debug("M2MConnectionSecurityPimpl::timer_expired - DTLS timeout");
+            tr_error("M2MConnectionSecurityPimpl::timer_expired - handshake timeout");
             if(_ssl.p_bio) {
                 M2MConnectionHandler* ptr = (M2MConnectionHandler*)_ssl.p_bio;
-                ptr->handle_connection_error(int(M2MInterface::Timeout));
+                ptr->handle_connection_error(M2MConnectionHandler::SSL_CONNECTION_ERROR);
             }
-        }
-    } else {
-        tr_debug("M2MConnectionSecurityPimpl::timer_expired connection error");
-        if(_ssl.p_bio) {
-            M2MConnectionHandler* ptr = (M2MConnectionHandler*)_ssl.p_bio;
-            ptr->handle_connection_error(int(M2MInterface::Timeout));
         }
     }
 }
@@ -220,7 +212,7 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
     if(!_init_done){
         return ret;
     }
-    _is_blocking = true;
+
     mbedtls_ssl_conf_rng( &_conf, mbedtls_ctr_drbg_random, &_ctr_drbg );
 
     if( ( ret = mbedtls_ssl_setup( &_ssl, &_conf ) ) != 0 ) {
@@ -246,7 +238,6 @@ int M2MConnectionSecurityPimpl::start_connecting_non_blocking(M2MConnectionHandl
     if(!_init_done){
         return ret;
     }
-    _is_blocking = false;
 
     int mode = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
     if( _sec_mode == M2MConnectionSecurity::TLS ){
