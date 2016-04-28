@@ -21,6 +21,12 @@
 #include "mbedtls_stub.h"
 #include "mbed-client/m2mconnectionhandler.h"
 #include "m2mtimer_stub.h"
+#include "mbed-client-mbedtls/m2mplatformabstract.h"
+
+uint32_t get_random_number(void)
+{
+    return time(NULL);
+}
 
 class TestObserver : public M2MConnectionObserver {
 
