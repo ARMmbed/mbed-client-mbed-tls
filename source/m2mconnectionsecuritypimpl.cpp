@@ -16,9 +16,11 @@
 
 #include "mbed-client/m2mconnectionhandler.h"
 #include "mbed-client-mbedtls/m2mconnectionsecuritypimpl.h"
+#include "mbed-client-mbedtls/m2mplatformabstract.h"
 #include "mbed-client/m2mtimer.h"
 #include "mbed-client/m2msecurity.h"
 #include "mbed-trace/mbed_trace.h"
+
 #include <string.h>
 
 #define TRACE_GROUP "mClt"
@@ -354,7 +356,7 @@ int f_recv_timeout(void *ctx, unsigned char *buf, size_t len, uint32_t /*some*/)
 int entropy_poll( void *, unsigned char *output, size_t len,
                            size_t *olen )
 {
-    srand(time(NULL));
+    srand(get_random_number());
     char *c = (char*)malloc(len);
     memset(c, 0, len);
     for(uint16_t i=0; i < len; i++){
