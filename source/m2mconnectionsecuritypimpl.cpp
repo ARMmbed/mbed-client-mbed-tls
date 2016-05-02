@@ -19,6 +19,7 @@
 #include "mbed-client/m2mtimer.h"
 #include "mbed-client/m2msecurity.h"
 #include "mbed-trace/mbed_trace.h"
+#include "mbedtls/debug.h"
 #include <string.h>
 
 #define TRACE_GROUP "mClt"
@@ -32,6 +33,15 @@ int f_recv(void *ctx, unsigned char *buf, size_t len);
 int f_recv_timeout(void *ctx, unsigned char *buf, size_t len, uint32_t some);
 
 bool cancelled;
+
+/*
+static void mbedtls_debug( void *ctx, int level,
+                      const char *file, int line, const char *str )
+{
+    ((void) level);
+    tr_debug("%s", str);
+}
+*/
 
 M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
   : _flags(0),
@@ -57,19 +67,20 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl(){
     mbedtls_pk_free(&_pkey);
     mbedtls_ctr_drbg_free( &_ctr_drbg );
     mbedtls_entropy_free( &_entropy );
-    delete _timer; 
+    delete _timer;
 }
 
 void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
     tr_debug("M2MConnectionSecurityPimpl::timer_expired");
     if(type == M2MTimerObserver::Dtls && !cancelled){
         int error = continue_connecting();
-        if(MBEDTLS_ERR_SSL_TIMEOUT == error) {
+        if(MBEDTLS_ERR_SSL_TIMEOUT == error || error == -1) {
             tr_error("M2MConnectionSecurityPimpl::timer_expired - handshake timeout");
             if(_ssl.p_bio) {
                 M2MConnectionHandler* ptr = (M2MConnectionHandler*)_ssl.p_bio;
-                ptr->handle_connection_error(M2MConnectionHandler::SSL_CONNECTION_ERROR);
+                ptr->handle_connection_error(M2MConnectionHandler::SSL_HANDSHAKE_ERROR);
             }
+            reset();
         }
     }
 }
@@ -165,6 +176,10 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
             ret = -1;
         }
 
+        /* Enable following two lines to get traces from mbedtls */
+        /*mbedtls_ssl_conf_dbg( &_conf, mbedtls_debug, stdout );
+        mbedtls_debug_set_threshold(3);*/
+
         free(srv_public_key);
         free(public_key);
         free(sec_key);
@@ -181,18 +196,12 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
 int M2MConnectionSecurityPimpl::start_handshake(){
     tr_debug("M2MConnectionSecurityPimpl::start_handshake");
     int ret = -1;
-    int retry_count = 0;
     do
     {
        ret = mbedtls_ssl_handshake( &_ssl );
-       if (ret == -1) {
-           retry_count++;
-           tr_debug("M2MConnectionSecurityPimpl::start_handshake - try again");
-       }
     }
     while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-           ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
-           (ret == -1 && retry_count <= RETRY_COUNT));
+           ret == MBEDTLS_ERR_SSL_WANT_WRITE);
 
     if( ret != 0 ) {
         ret = -1;
@@ -224,6 +233,7 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
 
     mbedtls_ssl_set_timer_cb( &_ssl, _timer, mbedtls_timing_set_delay,
                               mbedtls_timing_get_delay );
+    mbedtls_ssl_conf_handshake_timeout( &_conf, 1000, 4000 );
 
     ret = start_handshake();
     _timer->stop_timer();
@@ -289,6 +299,10 @@ int M2MConnectionSecurityPimpl::continue_connecting()
         if( MBEDTLS_ERR_SSL_WANT_READ == ret ){
             ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
         }
+        else if (ret == -1) {
+            return -1;
+        }
+
         if(MBEDTLS_ERR_SSL_TIMEOUT == ret ||
            MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO == ret ||
            MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE == ret ||
