@@ -233,7 +233,6 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
 
     mbedtls_ssl_set_timer_cb( &_ssl, _timer, mbedtls_timing_set_delay,
                               mbedtls_timing_get_delay );
-    mbedtls_ssl_conf_handshake_timeout( &_conf, 1000, 4000 );
 
     ret = start_handshake();
     _timer->stop_timer();
