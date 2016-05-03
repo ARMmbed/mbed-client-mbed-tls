@@ -68,3 +68,9 @@ int M2MConnectionSecurityPimpl::read(unsigned char* buffer, uint16_t len){
 
 void M2MConnectionSecurityPimpl::timer_expired(M2MTimerObserver::Type type){
 }
+
+void M2MConnectionSecurityPimpl::set_random_number_callback(random_number_cb){
+}
+
+void M2MConnectionSecurityPimpl::set_entropy_callback(entropy_cb){
+}

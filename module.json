@@ -13,7 +13,9 @@
   "homepage": "https://github.com/ARMmbed/mbed-client-mbedtls",
   "license": "Apache-2.0",
   "dependencies": {
-    "mbedtls": "^2.0.0"
+    "mbedtls": "^2.0.0",
+    "mbed-client": "^1.9.2",
+    "mbed-client-mbed-os": "^1.3.3"
   },
   "targetDependencies": {}
 }
