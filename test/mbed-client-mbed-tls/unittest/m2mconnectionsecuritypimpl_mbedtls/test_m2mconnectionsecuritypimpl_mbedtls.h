@@ -18,6 +18,8 @@
 
 #include "mbed-client-mbedtls/m2mconnectionsecuritypimpl.h"
 
+uint32_t test_random_callback(void);
+
 class Test_M2MConnectionSecurityPimpl
 {
 public:
@@ -44,6 +46,11 @@ public:
     void test_read();
 
     void test_timer_expired();
+
+    void test_set_random_number_callback();
+
+    void test_set_entropy_callback();
+
 };
 
 

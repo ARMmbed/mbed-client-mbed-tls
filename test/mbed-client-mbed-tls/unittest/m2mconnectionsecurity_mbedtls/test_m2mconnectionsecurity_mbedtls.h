@@ -18,6 +18,8 @@
 
 #include "m2mconnectionsecurity.h"
 
+uint32_t test_random_callback(void);
+
 class Test_M2MConnectionSecurity
 {
 public:
@@ -42,6 +44,10 @@ public:
     void test_send_message();
 
     void test_read();
+
+    void test_set_random_number_callback();
+
+    void test_set_entropy_callback();
 };
 
 

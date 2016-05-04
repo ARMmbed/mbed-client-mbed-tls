@@ -22,6 +22,25 @@
 #include "mbed-client/m2mconnectionhandler.h"
 #include "m2mtimer_stub.h"
 
+uint32_t get_random_number(void)
+{
+    return time(NULL);
+}
+
+entropy_cb ent_cb;
+
+int ent_poll( void *, unsigned char *output, size_t len,
+                           size_t *olen )
+{
+    for(uint16_t i=0; i < len; i++){
+        srand(time(NULL));
+        output[i] = rand() % 256;
+    }
+    *olen = len;
+
+    return( 0 );
+}
+
 class TestObserver : public M2MConnectionObserver {
 
 public:
@@ -156,16 +175,34 @@ void Test_M2MConnectionSecurityPimpl::test_init()
     m2msecurity_stub::int_value = 99;
     CHECK( -1 == impl.init(sec) );
 
+    impl.set_random_number_callback(NULL);
+
+    ent_cb.entropy_source_ptr = ent_poll;
+    ent_cb.p_source = NULL;
+    ent_cb.threshold = 128;
+    ent_cb.strong = 0;
+
     m2msecurity_stub::int_value = 5;
     m2msecurity_stub::has_value = false;
     mbedtls_stub::useCounter = false;
     mbedtls_stub::expected_int = 0;
     mbedtls_stub::crt_expected_int = 0;
+    mbedtls_stub::counter = 1;
     m2msecurity_stub::int_value = M2MSecurity::Certificate;
     CHECK( -1 == impl.init(sec) );
 
+    impl.set_entropy_callback(ent_cb);
+    m2msecurity_stub::int_value = 5;
+    m2msecurity_stub::has_value = false;
+    mbedtls_stub::useCounter = false;
+    mbedtls_stub::expected_int = -1;
+    mbedtls_stub::crt_expected_int = 0;
+    mbedtls_stub::counter = 1;
+    m2msecurity_stub::int_value = M2MSecurity::Certificate;
+    CHECK( -1 == impl.init(sec) );
 
     delete sec;
+    mbedtls_stub::clear();
 }
 
 void Test_M2MConnectionSecurityPimpl::test_connect()
@@ -343,4 +380,22 @@ void Test_M2MConnectionSecurityPimpl::test_timer_expired()
 
     impl.timer_expired(M2MTimerObserver::Dtls);
     free(bio);
+}
+
+void Test_M2MConnectionSecurityPimpl::test_set_random_number_callback()
+{
+    M2MConnectionSecurityPimpl impl = M2MConnectionSecurityPimpl(M2MConnectionSecurity::TLS);
+    random_number_cb cb(&test_random_callback);
+    impl.set_random_number_callback(cb);
+}
+
+void Test_M2MConnectionSecurityPimpl::test_set_entropy_callback()
+{
+    M2MConnectionSecurityPimpl impl = M2MConnectionSecurityPimpl(M2MConnectionSecurity::TLS);
+    impl.set_entropy_callback(ent_cb);
+}
+
+uint32_t test_random_callback(void)
+{
+    return 1;
 }

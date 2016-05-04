@@ -252,6 +252,10 @@ int mbedtls_entropy_add_source( mbedtls_entropy_context *,
     if( mbedtls_stub::useCounter ){
         return mbedtls_stub::retArray[mbedtls_stub::counter++];
     }
+    if(mbedtls_stub::counter == 1){
+        mbedtls_stub::counter--;
+        return 0;
+    }
     return mbedtls_stub::expected_int;
 }
 
