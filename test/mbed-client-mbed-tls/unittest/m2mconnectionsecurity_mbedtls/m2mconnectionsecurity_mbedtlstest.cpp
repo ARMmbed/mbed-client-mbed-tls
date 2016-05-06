@@ -82,3 +82,13 @@ TEST(M2MConnectionSecurity_mbedtls, test_read)
     inst->test_read();
 }
 
+TEST(M2MConnectionSecurity_mbedtls, test_set_random_number_callback)
+{
+    inst->test_set_random_number_callback();
+}
+
+TEST(M2MConnectionSecurity_mbedtls, test_set_entropy_callback)
+{
+    inst->test_set_entropy_callback();
+}
+

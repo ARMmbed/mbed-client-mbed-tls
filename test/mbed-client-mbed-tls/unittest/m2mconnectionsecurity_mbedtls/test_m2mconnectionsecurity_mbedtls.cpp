@@ -23,6 +23,8 @@
 #include "mbed-client-mbed-os/m2mconnectionhandlerpimpl.h"
 #include "m2mconnectionsecuritypimpl_stub.h"
 
+entropy_cb ent_cb;
+
 class TestObserver : public M2MConnectionObserver {
 
 public:
@@ -113,3 +115,21 @@ void Test_M2MConnectionSecurity::test_read()
     CHECK( 7 == impl.read(msg, 49));
 }
 
+void Test_M2MConnectionSecurity::test_set_random_number_callback()
+{
+    M2MConnectionSecurity impl = M2MConnectionSecurity(M2MConnectionSecurity::TLS);
+    random_number_cb cb(&test_random_callback);
+    impl.set_random_number_callback(cb);
+
+}
+
+void Test_M2MConnectionSecurity::test_set_entropy_callback()
+{
+    M2MConnectionSecurity impl = M2MConnectionSecurity(M2MConnectionSecurity::TLS);
+    impl.set_entropy_callback(ent_cb);
+}
+
+uint32_t test_random_callback(void)
+{
+    return 1;
+}

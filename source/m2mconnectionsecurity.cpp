@@ -59,3 +59,13 @@ int M2MConnectionSecurity::send_message(unsigned char *message, int len){
 int M2MConnectionSecurity::read(unsigned char* buffer, uint16_t len){
     return _private_impl->read(buffer, len);
 }
+
+void M2MConnectionSecurity::set_random_number_callback(random_number_cb callback)
+{
+    _private_impl->set_random_number_callback(callback);
+}
+
+void M2MConnectionSecurity::set_entropy_callback(entropy_cb callback)
+{
+    _private_impl->set_entropy_callback(callback);
+}

@@ -87,3 +87,13 @@ TEST(M2MConnectionSecurityPimpl_mbedtls, test_timer_expired)
     inst->test_timer_expired();
 }
 
+TEST(M2MConnectionSecurityPimpl_mbedtls, test_set_random_number_callback)
+{
+    inst->test_set_random_number_callback();
+}
+
+TEST(M2MConnectionSecurityPimpl_mbedtls, test_set_entropy_callback)
+{
+    inst->test_set_entropy_callback();
+}
+

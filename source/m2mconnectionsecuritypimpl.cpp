@@ -33,6 +33,9 @@ int f_recv(void *ctx, unsigned char *buf, size_t len);
 int f_recv_timeout(void *ctx, unsigned char *buf, size_t len, uint32_t some);
 
 bool cancelled;
+random_number_cb    __random_number_callback;
+entropy_cb          __entropy_callback;
+
 
 /*
 static void mbedtls_debug( void *ctx, int level,
@@ -120,6 +123,13 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
         if( mbedtls_entropy_add_source( &_entropy, entropy_poll, NULL,
                                     128, 0 ) < 0 ){
             return -1;
+        }
+        if(__entropy_callback.entropy_source_ptr) {
+            if( mbedtls_entropy_add_source( &_entropy, __entropy_callback.entropy_source_ptr,
+                                            __entropy_callback.p_source,__entropy_callback.threshold,
+                                            __entropy_callback.strong ) < 0 ){
+                return -1;
+            }
         }
 
         if( mbedtls_ctr_drbg_seed( &_ctr_drbg, mbedtls_entropy_func, &_entropy,
@@ -366,17 +376,19 @@ int f_recv_timeout(void *ctx, unsigned char *buf, size_t len, uint32_t /*some*/)
 
 int entropy_poll( void *, unsigned char *output, size_t len,
                            size_t *olen )
-{
-    srand(time(NULL));
-    char *c = (char*)malloc(len);
-    memset(c, 0, len);
-    for(uint16_t i=0; i < len; i++){
-        c[i] = rand() % 256;
+{    
+    uint32_t rdm = 0;
+    if(__random_number_callback) {
+        rdm = __random_number_callback();
+    } else {
+        rdm = time(NULL);
     }
-    memmove(output, c, len);
+    for(uint16_t i=0; i < len; i++){
+        srand(rdm);
+        output[i] = rand() % 256;
+    }
     *olen = len;
 
-    free(c);
     return( 0 );
 }
 
@@ -419,3 +431,14 @@ int mbedtls_timing_get_delay( void *data ){
         return 0;
     }
 }
+
+void M2MConnectionSecurityPimpl::set_random_number_callback(random_number_cb callback)
+{
+     __random_number_callback = callback;
+}
+
+void M2MConnectionSecurityPimpl::set_entropy_callback(entropy_cb callback)
+{
+    __entropy_callback = callback;
+}
+
