@@ -315,7 +315,7 @@ void Test_M2MConnectionSecurityPimpl::test_start_connecting_non_blocking()
 void Test_M2MConnectionSecurityPimpl::test_continue_connecting()
 {
     M2MConnectionSecurityPimpl impl = M2MConnectionSecurityPimpl(M2MConnectionSecurity::TLS);
-
+    impl._ssl.state = MBEDTLS_SSL_HELLO_REQUEST;
     mbedtls_stub::expected_int = MBEDTLS_ERR_SSL_WANT_READ;
     CHECK( M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ == impl.continue_connecting());
 
