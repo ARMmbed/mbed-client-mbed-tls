@@ -49,7 +49,7 @@ public:
                         uint16_t,
                         const M2MConnectionObserver::SocketAddress &){}
 
-    void socket_error(uint8_t error_code){}
+    void socket_error(uint8_t error_code, bool retry = true){}
 
     void address_ready(const M2MConnectionObserver::SocketAddress &,
                        M2MConnectionObserver::ServerType,
@@ -318,6 +318,10 @@ void Test_M2MConnectionSecurityPimpl::test_continue_connecting()
 
     mbedtls_stub::expected_int = MBEDTLS_ERR_SSL_WANT_READ;
     CHECK( M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ == impl.continue_connecting());
+
+    mbedtls_stub::expected_int = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST;
+    impl._ssl.state = MBEDTLS_SSL_CLIENT_HELLO;
+    CHECK( MBEDTLS_ERR_SSL_TIMEOUT == impl.continue_connecting());
 
     mbedtls_stub::expected_int = -6;
     impl._ssl.state = MBEDTLS_SSL_HANDSHAKE_OVER;
