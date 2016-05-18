@@ -85,5 +85,16 @@ int M2MConnectionHandler::receive_from_socket(unsigned char *buf, size_t len)
 
 void M2MConnectionHandler::handle_connection_error(int)
 {
+}
 
+void M2MConnectionHandler::set_platform_network_handler(void *)
+{
+}
+
+void M2MConnectionHandler::claim_mutex()
+{
+}
+
+void M2MConnectionHandler::release_mutex()
+{
 }
