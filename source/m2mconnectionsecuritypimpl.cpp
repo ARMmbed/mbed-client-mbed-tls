@@ -147,9 +147,10 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
         M2MSecurity::SecurityModeType cert_mode =
                 (M2MSecurity::SecurityModeType)security->resource_value_int(M2MSecurity::SecurityMode);
 
-        uint8_t *srv_public_key = 0;
-        uint8_t *public_key = 0;
-        uint8_t *sec_key = 0;
+        // Note: these are relatively large buffers, no point to make copy of them here as mbedtls will make a copy of them.
+        const uint8_t *srv_public_key = NULL;
+        const uint8_t *public_key = NULL;
+        const uint8_t *sec_key = NULL;
 
         uint32_t srv_public_key_size = security->resource_value_buffer(M2MSecurity::ServerPublicKey, srv_public_key);
         uint32_t public_key_size = security->resource_value_buffer(M2MSecurity::PublicKey, public_key);
@@ -189,10 +190,6 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
         /* Enable following two lines to get traces from mbedtls */
         /*mbedtls_ssl_conf_dbg( &_conf, mbedtls_debug, stdout );
         mbedtls_debug_set_threshold(3);*/
-
-        free(srv_public_key);
-        free(public_key);
-        free(sec_key);
     }
 
     if( ret == 0 ){
