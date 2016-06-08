@@ -23,6 +23,7 @@
 #include "mbed-client/m2msecurity.h"
 
 #include "mbedtls/config.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
