@@ -305,18 +305,8 @@ int M2MConnectionSecurityPimpl::continue_connecting()
         if( MBEDTLS_ERR_SSL_WANT_READ == ret ){
             ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
         }
-        else if (ret == -1) {
-            return -1;
-        }
 
-        if(MBEDTLS_ERR_SSL_TIMEOUT == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_FINISHED == ret) {
+        if(M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ != ret) {
             return MBEDTLS_ERR_SSL_TIMEOUT;
         }
         if( _ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER ){
