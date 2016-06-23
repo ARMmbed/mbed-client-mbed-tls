@@ -306,7 +306,7 @@ int M2MConnectionSecurityPimpl::continue_connecting()
             ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
         }
         tr_debug("M2MConnectionSecurityPimpl::socket error %d\r\n", ret);
-        if(M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ != ret) {
+        if(0 != ret && M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ != ret) {
             return MBEDTLS_ERR_SSL_TIMEOUT;
         }
         if( _ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER ){
