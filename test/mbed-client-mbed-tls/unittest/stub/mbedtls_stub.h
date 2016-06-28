@@ -16,6 +16,7 @@
 #ifndef MBEDTLS_STUB_H
 #define MBEDTLS_STUB_H
 
+#include "mbedtls/platform.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/x509_crt.h"
