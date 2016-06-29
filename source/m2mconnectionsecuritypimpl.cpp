@@ -162,11 +162,11 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
 
         if( cert_mode == M2MSecurity::Certificate ){
             if ( mbedtls_x509_crt_parse( &_cacert, (const unsigned char *) srv_public_key,
-                    srv_public_key_size ) < 0 ||
+                    srv_public_key_size + 1) < 0 ||
                 mbedtls_x509_crt_parse( &_owncert, (const unsigned char *) public_key,
-                    public_key_size ) < 0 ||
+                    public_key_size + 1) < 0 ||
                 mbedtls_pk_parse_key(&_pkey, (const unsigned char *) sec_key,
-                    sec_key_size, NULL, 0 ) < 0 ) {
+                    sec_key_size + 1, NULL, 0 ) < 0 ) {
                 ret = -1;
             } else {
                 ret = 0;
