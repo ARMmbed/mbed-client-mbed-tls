@@ -300,25 +300,15 @@ int M2MConnectionSecurityPimpl::continue_connecting()
 {
     tr_debug("M2MConnectionSecurityPimpl::continue_connecting");
     int ret=-1;
-    while( ret != M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ){
-        ret = mbedtls_ssl_handshake( &_ssl );
+    while( ret != M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ ){
+        ret = mbedtls_ssl_handshake_step( &_ssl );
         if( MBEDTLS_ERR_SSL_WANT_READ == ret ){
             ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
         }
-        else if (ret == -1) {
-            return -1;
+        else if (ret != 0) {
+            break;
         }
 
-        if(MBEDTLS_ERR_SSL_TIMEOUT == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_FINISHED == ret) {
-            return MBEDTLS_ERR_SSL_TIMEOUT;
-        }
         if( _ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER ){
             return 0;
         }
