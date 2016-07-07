@@ -36,15 +36,36 @@ bool cancelled;
 random_number_cb    __random_number_callback;
 entropy_cb          __entropy_callback;
 
-
-/*
+//Comment out following define to enable tracing from mbedtls
+//#define ENABLE_MBED_CLIENT_MBED_TLS_DEBUGS
+#ifdef ENABLE_MBED_CLIENT_MBED_TLS_DEBUGS
 static void mbedtls_debug( void *ctx, int level,
                       const char *file, int line, const char *str )
 {
     ((void) level);
     tr_debug("%s", str);
 }
-*/
+
+static int verify_cert_chains(void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags)
+{
+    char buf[1024];
+    (void) data;
+
+    printf("\nVerifying certificate at depth %d:\n", depth);
+    mbedtls_x509_crt_info(buf, sizeof (buf) - 1, "  ", crt);
+    printf("%s", buf);
+
+    if (*flags == 0)
+        printf("No verification issue for this certificate\n");
+    else
+    {
+        mbedtls_x509_crt_verify_info(buf, sizeof (buf), "  ! ", *flags);
+        printf("%s\n", buf);
+    }
+
+    return 0;
+}
+#endif
 
 M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
   : _flags(0),
@@ -187,9 +208,11 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
             ret = -1;
         }
 
-        /* Enable following two lines to get traces from mbedtls */
-        /*mbedtls_ssl_conf_dbg( &_conf, mbedtls_debug, stdout );
-        mbedtls_debug_set_threshold(3);*/
+#ifdef ENABLE_MBED_CLIENT_MBED_TLS_DEBUGS
+        mbedtls_ssl_conf_dbg( &_conf, mbedtls_debug, stdout );
+        mbedtls_debug_set_threshold(5);
+        mbedtls_ssl_conf_verify(&_conf, verify_cert_chains, NULL);
+#endif
     }
 
     if( ret == 0 ){
