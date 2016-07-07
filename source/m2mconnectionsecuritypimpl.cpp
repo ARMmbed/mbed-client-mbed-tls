@@ -183,11 +183,11 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
 
         if( cert_mode == M2MSecurity::Certificate ){
             if ( mbedtls_x509_crt_parse( &_cacert, (const unsigned char *) srv_public_key,
-                    srv_public_key_size ) < 0 ||
+                    srv_public_key_size + 1) < 0 ||
                 mbedtls_x509_crt_parse( &_owncert, (const unsigned char *) public_key,
-                    public_key_size ) < 0 ||
+                    public_key_size + 1) < 0 ||
                 mbedtls_pk_parse_key(&_pkey, (const unsigned char *) sec_key,
-                    sec_key_size, NULL, 0 ) < 0 ) {
+                    sec_key_size + 1, NULL, 0 ) < 0 ) {
                 ret = -1;
             } else {
                 ret = 0;
@@ -323,25 +323,15 @@ int M2MConnectionSecurityPimpl::continue_connecting()
 {
     tr_debug("M2MConnectionSecurityPimpl::continue_connecting");
     int ret=-1;
-    while( ret != M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ){
-        ret = mbedtls_ssl_handshake( &_ssl );
+    while( ret != M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ ){
+        ret = mbedtls_ssl_handshake_step( &_ssl );
         if( MBEDTLS_ERR_SSL_WANT_READ == ret ){
             ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
         }
-        else if (ret == -1) {
-            return -1;
+        else if (ret != 0) {
+            break;
         }
 
-        if(MBEDTLS_ERR_SSL_TIMEOUT == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC == ret ||
-           MBEDTLS_ERR_SSL_BAD_HS_FINISHED == ret) {
-            return MBEDTLS_ERR_SSL_TIMEOUT;
-        }
         if( _ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER ){
             return 0;
         }

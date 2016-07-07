@@ -321,9 +321,13 @@ void Test_M2MConnectionSecurityPimpl::test_continue_connecting()
 
     mbedtls_stub::expected_int = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST;
     impl._ssl.state = MBEDTLS_SSL_CLIENT_HELLO;
-    CHECK( MBEDTLS_ERR_SSL_TIMEOUT == impl.continue_connecting());
+    CHECK( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST == impl.continue_connecting());
 
     mbedtls_stub::expected_int = -6;
+    impl._ssl.state = MBEDTLS_SSL_HANDSHAKE_OVER;
+    CHECK( -6 == impl.continue_connecting());
+
+    mbedtls_stub::expected_int = 0;
     impl._ssl.state = MBEDTLS_SSL_HANDSHAKE_OVER;
     CHECK( 0 == impl.continue_connecting());
 }
