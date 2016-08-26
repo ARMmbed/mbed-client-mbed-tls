@@ -4,7 +4,7 @@
 # List of subdirectories to build
 TEST_FOLDER := ./test/
 
-LIB = libmbed-client-mbedtls.a
+LIB = libmbed-client-mbed-tls.a
 
 # List of unit test directories for libraries
 UNITTESTS := $(sort $(dir $(wildcard $(TEST_FOLDER)*/unittest/*)))
