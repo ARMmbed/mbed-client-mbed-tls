@@ -5,6 +5,7 @@
   "keywords": [
     "mbed-client-mbedtls"
   ],
+  
   "author": "Antti Kauppila",
   "repository": {
     "url": "git@github.com:ARMmbed/mbed-client-mbedtls.git",
