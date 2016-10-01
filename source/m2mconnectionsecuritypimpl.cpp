@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+// Note: this macro is needed on armcc to get the the PRI*32 macros
+// from inttypes.h in a C++ code.
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+
 #include "mbed-client/m2mconnectionhandler.h"
 #include "mbed-client-mbedtls/m2mconnectionsecuritypimpl.h"
 #include "mbed-client/m2mtimer.h"
@@ -21,6 +27,7 @@
 #include "mbed-trace/mbed_trace.h"
 #include "mbedtls/debug.h"
 #include <string.h>
+#include <inttypes.h>
 
 #define TRACE_GROUP "mClt"
 
@@ -403,8 +410,8 @@ int entropy_poll( void *, unsigned char *output, size_t len,
 }
 
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms ){
-    tr_debug("mbedtls_timing_set_delay - intermediate: %d", int_ms);
-    tr_debug("mbedtls_timing_set_delay - final: %d", fin_ms);
+    tr_debug("mbedtls_timing_set_delay - intermediate: %" PRIu32, int_ms);
+    tr_debug("mbedtls_timing_set_delay - final: %" PRIu32, fin_ms);
     M2MTimer* timer = static_cast<M2MTimer*> (data);
     if(!timer) {
         return;
