@@ -195,7 +195,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
 
             if ( ret == 0 ) {
                 mbedtls_ssl_conf_own_cert(&_conf, &_owncert, &_pkey);
-                mbedtls_ssl_conf_authmode( &_conf, MBEDTLS_SSL_VERIFY_REQUIRED );
+                mbedtls_ssl_conf_authmode( &_conf, MBEDTLS_SSL_VERIFY_OPTIONAL/* XXX: commented for DEMO purposes only MBEDTLS_SSL_VERIFY_REQUIRED*/ );
                 mbedtls_ssl_conf_ca_chain( &_conf, &_cacert, NULL );
             }
 
@@ -234,6 +234,7 @@ int M2MConnectionSecurityPimpl::start_handshake(){
            ret == MBEDTLS_ERR_SSL_WANT_WRITE);
 
     if( ret != 0 ) {
+        tr_error("M2MConnectionSecurityPimpl::start_handshake - ret: %d", ret);
         ret = -1;
     }else {
         if( ( _flags = mbedtls_ssl_get_verify_result( &_ssl ) ) != 0 ) {
@@ -267,6 +268,11 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler){
     ret = start_handshake();
     _timer->stop_timer();
     tr_debug("M2MConnectionSecurityPimpl::connect - handshake ret: %d, ssl state: %d", ret, _ssl.state);
+    if (_ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER) {
+        tr_debug("M2MConnectionSecurityPimpl::connect - handshake ret: %d, ssl state: %d HOLY MOLY", ret, _ssl.state);
+        // connector needs this
+        ret = 0;
+    }
     return ret;
 }
 
@@ -329,14 +335,16 @@ int M2MConnectionSecurityPimpl::continue_connecting()
             ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
         }
         else if (ret != 0) {
+            tr_error("M2MConnectionSecurityPimpl::continue_connecting 1 - ret: %d", ret);
             break;
         }
 
         if( _ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER ){
+            tr_error("M2MConnectionSecurityPimpl::continue_connecting - HAPPY HAPPY JOY JOY %d", ret);
             return 0;
         }
     }
-    tr_debug("M2MConnectionSecurityPimpl::continue_connecting, ret: %d", ret);
+    tr_debug("M2MConnectionSecurityPimpl::continue_connecting 2, ret: %d", ret);
     return ret;
 }
 
