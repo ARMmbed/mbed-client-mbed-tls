@@ -393,8 +393,8 @@ int entropy_poll( void *, unsigned char *output, size_t len,
     } else {
         rdm = time(NULL);
     }
+    srand(rdm);
     for(uint16_t i=0; i < len; i++){
-        srand(rdm);
         output[i] = rand() % 256;
     }
     *olen = len;
