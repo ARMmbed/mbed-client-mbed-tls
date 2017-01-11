@@ -38,16 +38,6 @@ int M2MConnectionSecurity::init(const M2MSecurity *security){
     return _private_impl->init(security);
 }
 
-int M2MConnectionSecurity::start_connecting_non_blocking(M2MConnectionHandler* connHandler)
-{
-    return _private_impl->start_connecting_non_blocking(connHandler);
-}
-
-int M2MConnectionSecurity::continue_connecting()
-{
-    return _private_impl->continue_connecting();
-}
-
 int M2MConnectionSecurity::connect(M2MConnectionHandler* connHandler){
     return _private_impl->connect(connHandler);
 }
@@ -68,4 +58,9 @@ void M2MConnectionSecurity::set_random_number_callback(random_number_cb callback
 void M2MConnectionSecurity::set_entropy_callback(entropy_cb callback)
 {
     _private_impl->set_entropy_callback(callback);
+}
+
+void M2MConnectionSecurity::set_socket(void *socket, void *address)
+{
+    _private_impl->set_socket((palSocket_t) socket, (palSocketAddress_t*) address);
 }
