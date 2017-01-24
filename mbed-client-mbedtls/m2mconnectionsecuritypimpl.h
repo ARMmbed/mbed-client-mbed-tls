@@ -27,15 +27,6 @@ extern "C"{
 
 class M2MTimer;
 
-//TODO: Should we let application to select these or not??
-//const static int PSK_SUITES[] = {
-//    MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256,
-//    MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8,
-//    MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8,
-//    0
-//};
-
-
 /**
  * @brief The M2MConnectionSecurityPimpl class
  */
@@ -119,11 +110,9 @@ private:
 
 private:
 
-    bool                        _init_done;
+    uint8_t                     _init_done;
     palTLSConfHandle_t          _conf;
     palTLSHandle_t              _ssl;
-    palTLSSocket_t              _socket;
-    uint32_t                    _flags;
     M2MConnectionSecurity::SecurityMode _sec_mode;
     palTLSSocket_t tls_socket;
 
