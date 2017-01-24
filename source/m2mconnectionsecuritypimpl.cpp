@@ -26,7 +26,7 @@ extern "C"{
 #define TRACE_GROUP "mClt"
 
 M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
-    :_init_done(0),
+    :_init_done(M2MConnectionSecurityPimpl::INIT_NOT_STARTED),
      _conf(0),
      _ssl(0),
      _sec_mode(mode)
@@ -37,7 +37,7 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl()
 {
     if(_init_done){
         pal_tlsConfigurationFree(&_conf);
-        if(_init_done == 2){
+        if(_init_done == M2MConnectionSecurityPimpl::INIT_DONE){
             pal_freeTLS(&_ssl);
         }
     }
@@ -47,11 +47,11 @@ void M2MConnectionSecurityPimpl::reset()
 {
     if(_init_done){
         pal_tlsConfigurationFree(&_conf);
-        if(_init_done == 2){
+        if(_init_done == M2MConnectionSecurityPimpl::INIT_DONE){
             pal_freeTLS(&_ssl);
         }
     }
-    _init_done = 0;
+    _init_done = M2MConnectionSecurityPimpl::INIT_NOT_STARTED;
 }
 
 int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
@@ -73,7 +73,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
         return -1;
     }
 
-    _init_done = 1;
+    _init_done = M2MConnectionSecurityPimpl::INIT_CONFIGURING;
 
     if(_sec_mode == M2MConnectionSecurity::DTLS){
         pal_setHandShakeTimeOut(_conf, 20000);
@@ -132,7 +132,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
         return -1;
     }
 
-    _init_done = 2;
+    _init_done = M2MConnectionSecurityPimpl::INIT_DONE;
 
     pal_sslDebugging(0);
     tr_debug("M2MConnectionSecurityPimpl::init - out");
@@ -168,7 +168,7 @@ int M2MConnectionSecurityPimpl::connect(M2MConnectionHandler* connHandler)
     tr_debug("M2MConnectionSecurityPimpl::connect");
     int ret = -1;
 
-    if(2 != _init_done){
+    if(M2MConnectionSecurityPimpl::INIT_DONE != _init_done){
         return ret;
     }
 
@@ -185,7 +185,7 @@ int M2MConnectionSecurityPimpl::send_message(unsigned char *message, int len)
     palStatus_t return_value;
     uint32_t len_write;
 
-    if(2 != _init_done){
+    if(M2MConnectionSecurityPimpl::INIT_DONE != _init_done){
         return ret;
     }
 
@@ -208,7 +208,7 @@ int M2MConnectionSecurityPimpl::read(unsigned char* buffer, uint16_t len)
     palStatus_t return_value;
     uint32_t len_read;
 
-    if(2 != _init_done){
+    if(M2MConnectionSecurityPimpl::INIT_DONE != _init_done){
         tr_error("M2MConnectionSecurityPimpl::read - init not done!");
         return ret;
     }

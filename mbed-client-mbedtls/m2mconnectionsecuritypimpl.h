@@ -25,7 +25,6 @@ extern "C"{
 #include "pal_TLS.h"
 }
 
-class M2MTimer;
 
 /**
  * @brief The M2MConnectionSecurityPimpl class
@@ -33,6 +32,12 @@ class M2MTimer;
 class M2MConnectionSecurityPimpl{
 
 private:
+
+    enum{
+        INIT_NOT_STARTED = 0,
+        INIT_CONFIGURING,
+        INIT_DONE
+    };
 
     // Prevents the use of assignment operator by accident.
     M2MConnectionSecurityPimpl& operator=( const M2MConnectionSecurityPimpl& /*other*/ );
