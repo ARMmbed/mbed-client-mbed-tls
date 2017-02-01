@@ -148,7 +148,7 @@ int M2MConnectionSecurityPimpl::start_handshake()
 
     ret = pal_handShake(_ssl, _conf);
 
-    if(ret == PAL_ERR_TLS_WANT_READ || ret == PAL_ERR_TLS_WANT_WRITE){
+    if(ret == PAL_ERR_TLS_WANT_READ || ret == PAL_ERR_TLS_WANT_WRITE || ret == PAL_ERR_TIMEOUT_EXPIRED){
         return M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
     }
 
@@ -194,7 +194,7 @@ int M2MConnectionSecurityPimpl::send_message(unsigned char *message, int len)
         ret = (int)len_write;
     }
 
-    if(return_value == PAL_ERR_TLS_WANT_READ || return_value == PAL_ERR_TLS_WANT_WRITE){
+    if(return_value == PAL_ERR_TLS_WANT_READ || return_value == PAL_ERR_TLS_WANT_WRITE || return_value == PAL_ERR_TIMEOUT_EXPIRED){
         ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
     }
 
@@ -217,7 +217,7 @@ int M2MConnectionSecurityPimpl::read(unsigned char* buffer, uint16_t len)
         ret = (int)len_read;
     }
 
-    if(return_value == PAL_ERR_TLS_WANT_READ || return_value == PAL_ERR_TLS_WANT_WRITE ){
+    if(return_value == PAL_ERR_TLS_WANT_READ || return_value == PAL_ERR_TLS_WANT_WRITE || return_value == PAL_ERR_TIMEOUT_EXPIRED){
         ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
     }
 
