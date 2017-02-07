@@ -62,16 +62,6 @@ TEST(M2MConnectionSecurity_mbedtls, test_connect)
     inst->test_connect();
 }
 
-TEST(M2MConnectionSecurity_mbedtls, test_start_connecting_non_blocking)
-{
-    inst->test_start_connecting_non_blocking();
-}
-
-TEST(M2MConnectionSecurity_mbedtls, test_continue_connecting)
-{
-    inst->test_continue_connecting();
-}
-
 TEST(M2MConnectionSecurity_mbedtls, test_send_message)
 {
     inst->test_send_message();
@@ -90,5 +80,10 @@ TEST(M2MConnectionSecurity_mbedtls, test_set_random_number_callback)
 TEST(M2MConnectionSecurity_mbedtls, test_set_entropy_callback)
 {
     inst->test_set_entropy_callback();
+}
+
+TEST(M2MConnectionSecurity_mbedtls, test_set_socket)
+{
+    inst->test_set_socket();
 }
 
