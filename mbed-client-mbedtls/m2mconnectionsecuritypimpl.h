@@ -24,7 +24,10 @@
 extern "C"{
 #include "pal_TLS.h"
 }
-
+#ifdef USE_CUSTOM_MBEDTLS_ENTROPY
+#include "mbedtls/entropy.h"
+#include "mbedtls/entropy_poll.h"
+#endif
 
 /**
  * @brief The M2MConnectionSecurityPimpl class
@@ -92,12 +95,21 @@ public:
     int read(unsigned char* buffer, uint16_t len);
 
     /**
-     * No longer used for anything.
+     * This function is no longer used.
      */
     void set_random_number_callback(random_number_cb callback);
 
     /**
-     * No longer used for anything.
+     * \brief Sets the function callback that will be called by mbed-client for
+     * providing entropy source from application for ensuring strong entropy.
+     * \param entropy_callback A function pointer that will be called by mbed-client
+     * while performing secure handshake.
+     * Function signature , if using mbed-client-mbedtls should be
+     * int (*mbedtls_entropy_f_source_ptr)(void *data, unsigned char *output,
+     *                                     size_t len, size_t *olen);
+     *
+     * NOTE: This function is only used if USE_CUSTOM_MBEDTLS_ENTROPY is defined
+     *       and mbed TLS is used.
      */
     void set_entropy_callback(entropy_cb callback);
 
@@ -120,6 +132,9 @@ private:
     palTLSHandle_t              _ssl;
     M2MConnectionSecurity::SecurityMode _sec_mode;
     palTLSSocket_t tls_socket;
+#ifdef USE_CUSTOM_MBEDTLS_ENTROPY
+    mbedtls_entropy_context _entropy;
+#endif
 
     friend class Test_M2MConnectionSecurityPimpl;
 };
