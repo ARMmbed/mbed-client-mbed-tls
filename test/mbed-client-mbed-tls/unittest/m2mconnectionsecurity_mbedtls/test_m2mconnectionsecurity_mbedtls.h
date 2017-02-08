@@ -37,10 +37,6 @@ public:
 
     void test_connect();
 
-    void test_start_connecting_non_blocking();
-
-    void test_continue_connecting();
-
     void test_send_message();
 
     void test_read();
@@ -48,6 +44,9 @@ public:
     void test_set_random_number_callback();
 
     void test_set_entropy_callback();
+
+    void test_set_socket();
+
 };
 
 
