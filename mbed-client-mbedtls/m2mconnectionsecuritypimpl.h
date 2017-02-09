@@ -24,7 +24,7 @@
 extern "C"{
 #include "pal_TLS.h"
 }
-#ifdef USE_CUSTOM_MBEDTLS_ENTROPY
+#ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 #endif
@@ -132,7 +132,7 @@ private:
     palTLSHandle_t              _ssl;
     M2MConnectionSecurity::SecurityMode _sec_mode;
     palTLSSocket_t tls_socket;
-#ifdef USE_CUSTOM_MBEDTLS_ENTROPY
+#ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
     mbedtls_entropy_context _entropy;
 #endif
 

@@ -25,7 +25,7 @@ extern "C"{
 
 #define TRACE_GROUP "mClt"
 
-#ifdef USE_CUSTOM_MBEDTLS_ENTROPY
+#ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
 static entropy_cb entropy_callback;
 #endif
 
@@ -67,7 +67,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
         return -1;
     }
 
-#ifdef USE_CUSTOM_MBEDTLS_ENTROPY
+#ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
 
     if(entropy_callback.entropy_source_ptr) {
         if( mbedtls_entropy_add_source( &_entropy, entropy_callback.entropy_source_ptr,
@@ -248,7 +248,7 @@ void M2MConnectionSecurityPimpl::set_random_number_callback(random_number_cb cal
 
 void M2MConnectionSecurityPimpl::set_entropy_callback(entropy_cb callback)
 {
-#ifdef USE_CUSTOM_MBEDTLS_ENTROPY
+#ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
     entropy_callback = callback;
 #endif
     (void)callback;
