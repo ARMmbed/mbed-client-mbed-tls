@@ -20,7 +20,7 @@
 #include "m2msecurity_stub.h"
 #include "mbedtls_stub.h"
 #include "m2mconnectionhandler.h"
-#include "mbed-client-mbed-os/m2mconnectionhandlerpimpl.h"
+#include "m2mconnectionhandlerpimpl.h"
 #include "m2mconnectionsecuritypimpl_stub.h"
 
 entropy_cb ent_cb;
@@ -84,19 +84,6 @@ void Test_M2MConnectionSecurity::test_connect()
     CHECK( 7 == impl.connect(NULL));
 }
 
-void Test_M2MConnectionSecurity::test_start_connecting_non_blocking()
-{
-    M2MConnectionSecurity impl = M2MConnectionSecurity(M2MConnectionSecurity::TLS);
-    m2mconnectionsecuritypimpl_stub::int_value = 7;
-    CHECK( 7 == impl.start_connecting_non_blocking(NULL));
-}
-
-void Test_M2MConnectionSecurity::test_continue_connecting()
-{
-    M2MConnectionSecurity impl = M2MConnectionSecurity(M2MConnectionSecurity::TLS);
-    m2mconnectionsecuritypimpl_stub::int_value = 7;
-    CHECK( 7 == impl.continue_connecting());
-}
 
 void Test_M2MConnectionSecurity::test_send_message()
 {
@@ -127,6 +114,12 @@ void Test_M2MConnectionSecurity::test_set_entropy_callback()
 {
     M2MConnectionSecurity impl = M2MConnectionSecurity(M2MConnectionSecurity::TLS);
     impl.set_entropy_callback(ent_cb);
+}
+
+void Test_M2MConnectionSecurity::test_set_socket()
+{
+    M2MConnectionSecurity impl = M2MConnectionSecurity(M2MConnectionSecurity::TLS);
+    impl.set_socket((palSocket_t) 0, (palSocketAddress_t*) NULL);
 }
 
 uint32_t test_random_callback(void)

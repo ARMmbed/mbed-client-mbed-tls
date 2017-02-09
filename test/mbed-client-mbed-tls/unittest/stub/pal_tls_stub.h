@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 - 2017 ARM Limited. All rights reserved.
+ * Copyright (c) 2017 ARM Limited. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  * Licensed under the Apache License, Version 2.0 (the License); you may
  * not use this file except in compliance with the License.
@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef M2M_SECURITY_STUB_H
-#define M2M_SECURITY_STUB_H
 
-#include "m2msecurity.h"
-
-//some internal test related stuff
-namespace m2msecurity_stub
+#ifndef PAL_TLS_STUB_H
+#define PAL_TLS_STUB_H
+extern "C"{
+#include "pal_TLS.h"
+}
+namespace pal_tls_stub
 {
-    extern bool has_value;
-    extern uint32_t int_value;
-    extern uint32_t sec_mode;
-    extern bool bool_value;
-    extern String *string_value;
-    extern M2MResource* resource;
-    void clear();
+    extern palStatus_t status;
+    extern palStatus_t new_status;
+    extern uint32_t change_status_count; //status changed to new_status after this turns to 0
 }
 
-#endif // M2M_SECURITY_STUB_H
-
+#endif // PAL_TLS_STUB_H

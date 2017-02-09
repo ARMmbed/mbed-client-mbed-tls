@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 ARM Limited. All rights reserved.
+ * Copyright (c) 2015 - 2017 ARM Limited. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  * Licensed under the Apache License, Version 2.0 (the License); you may
  * not use this file except in compliance with the License.
@@ -62,16 +62,6 @@ TEST(M2MConnectionSecurityPimpl_mbedtls, test_connect)
     inst->test_connect();
 }
 
-TEST(M2MConnectionSecurityPimpl_mbedtls, test_start_connecting_non_blocking)
-{
-    inst->test_start_connecting_non_blocking();
-}
-
-TEST(M2MConnectionSecurityPimpl_mbedtls, test_continue_connecting)
-{
-    inst->test_continue_connecting();
-}
-
 TEST(M2MConnectionSecurityPimpl_mbedtls, test_send_message)
 {
     inst->test_send_message();
@@ -80,11 +70,6 @@ TEST(M2MConnectionSecurityPimpl_mbedtls, test_send_message)
 TEST(M2MConnectionSecurityPimpl_mbedtls, test_read)
 {
     inst->test_read();
-}
-
-TEST(M2MConnectionSecurityPimpl_mbedtls, test_timer_expired)
-{
-    inst->test_timer_expired();
 }
 
 TEST(M2MConnectionSecurityPimpl_mbedtls, test_set_random_number_callback)
@@ -96,4 +81,11 @@ TEST(M2MConnectionSecurityPimpl_mbedtls, test_set_entropy_callback)
 {
     inst->test_set_entropy_callback();
 }
+
+TEST(M2MConnectionSecurityPimpl_mbedtls, test_set_socket)
+{
+    inst->test_set_socket();
+}
+
+
 
