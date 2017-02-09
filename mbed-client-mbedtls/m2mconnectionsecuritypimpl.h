@@ -108,7 +108,7 @@ public:
      * int (*mbedtls_entropy_f_source_ptr)(void *data, unsigned char *output,
      *                                     size_t len, size_t *olen);
      *
-     * NOTE: This function is only used if USE_CUSTOM_MBEDTLS_ENTROPY is defined
+     * NOTE: This function is only used if MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY is defined
      *       and mbed TLS is used.
      */
     void set_entropy_callback(entropy_cb callback);
