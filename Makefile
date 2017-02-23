@@ -34,6 +34,7 @@ clean: clean-extra
 $(TESTDIRS):
 	@yotta target frdm-k64f-gcc
 	@yotta install mbed-client
+	@yotta install mbed-client-c
 	@yotta install mbed-client-mbed-os
 	@make -C $(@:build-%=%)
 
@@ -65,6 +66,7 @@ test: $(TESTDIRS)
 	@lcov -q -r $(COVERAGEFILE) "/test*" -o $(COVERAGEFILE)
 	@lcov -q -r $(COVERAGEFILE) "/mbed-client/*" -o $(COVERAGEFILE)
 	@genhtml -q $(COVERAGEFILE) --show-details --output-directory lcov/html
+	@yotta uninstall mbed-client-c
 	@yotta uninstall mbed-client
 	@yotta uninstall mbed-client-mbed-os
 	@echo mbed-client-mbed-tls module unit tests built

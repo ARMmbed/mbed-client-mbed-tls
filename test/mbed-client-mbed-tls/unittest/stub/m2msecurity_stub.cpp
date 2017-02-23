@@ -17,6 +17,7 @@
 
 bool m2msecurity_stub::has_value;
 uint32_t m2msecurity_stub::int_value;
+uint32_t m2msecurity_stub::sec_mode;
 bool m2msecurity_stub::bool_value;
 String *m2msecurity_stub::string_value;
 M2MResource* m2msecurity_stub::resource;
@@ -31,7 +32,7 @@ void m2msecurity_stub::clear()
 }
 
 M2MSecurity::M2MSecurity(ServerType ser_type)
-: M2MObject("0"),
+: M2MObject("0", stringdup("0")),
  _server_type(ser_type),
  _server_instance(NULL)
 {
@@ -89,15 +90,23 @@ uint32_t M2MSecurity::resource_value_buffer(SecurityResource,
                                const uint8_t *&value) const
 {
     if( m2msecurity_stub::has_value ){
-        value = (const uint8_t*)"dummy";
-        return 6;
+        value = NULL;
+        return 5;
     }
     return m2msecurity_stub::int_value;
 }
 
-uint32_t M2MSecurity::resource_value_int(SecurityResource) const
+uint32_t M2MSecurity::resource_value_int(SecurityResource res) const
 {
-    return m2msecurity_stub::int_value;
+    if (res == M2MSecurity::SecurityMode) {
+        return m2msecurity_stub::sec_mode;
+    }
+    else if(res == M2MSecurity::BootstrapServer) {
+        return m2msecurity_stub::bool_value;
+    }
+    else {
+        return m2msecurity_stub::int_value;
+    }
 }
 
 bool M2MSecurity::is_resource_present(SecurityResource) const
@@ -113,4 +122,14 @@ uint16_t M2MSecurity::total_resource_count() const
 M2MSecurity::ServerType M2MSecurity::server_type() const
 {
     return _server_type;
+}
+
+void M2MSecurity::clear_resources()
+{
+
+}
+
+M2MResource* M2MSecurity::get_resource(SecurityResource res) const
+{
+    return m2msecurity_stub::resource;
 }
