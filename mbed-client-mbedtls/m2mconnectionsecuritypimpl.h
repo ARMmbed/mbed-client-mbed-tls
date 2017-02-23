@@ -146,14 +146,14 @@ private:
     *  \param certificate, The certificate to be extracted.
     *  \return epoch time or 0 if failure.
     */
-    uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const char *certificate);
+    uint32_t certificate_expiration_time(const char *certificate);
 
     /**
     *  \brief Returns certificate validFrom time in epoch format.
     *  \param certificate, The certificate to be extracted.
     *  \return epoch time or 0 if failure.
     */
-    uint32_t M2MConnectionSecurityPimpl::certificate_validfrom_time(const char *certificate);
+    uint32_t certificate_validfrom_time(const char *certificate);
 
     /**
     * \brief A utility function to check if provided security object
@@ -161,7 +161,7 @@ private:
     * \return True if certificate is valid, false if M2MSecurity or M2MDevice
     * objects are missing, or if current time is not within validity period
     */
-    bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecurity *security);
+    bool check_server_certificate_validity(const M2MSecurity *security);
 
 private:
 
