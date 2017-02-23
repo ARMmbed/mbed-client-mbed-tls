@@ -1,6 +1,6 @@
 {
   "name": "mbed-client-mbedtls",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Mbedtls specific implementation, which can be used by mbed client",
   "keywords": [
     "mbed-client-mbedtls"
