@@ -1,0 +1,147 @@
+#
+# Makefile for running unit tests
+#
+# List of subdirectories to build
+TEST_FOLDER := ./test/
+
+LIB = libmbed-client-mbed-tls.a
+
+# List of unit test directories for libraries
+UNITTESTS := $(sort $(dir $(wildcard $(TEST_FOLDER)*/unittest/*)))
+TESTDIRS := $(UNITTESTS:%=build-%)
+CLEANTESTDIRS := $(UNITTESTS:%=clean-%)
+COVERAGEFILE := ./lcov/coverage.info
+
+include sources.mk
+include include_dirs.mk
+
+override CFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
+override CFLAGS += $(addprefix -D,$(FLAGS))
+ifeq ($(DEBUG),1)
+override CFLAGS += -DHAVE_DEBUG
+endif
+
+#
+# Define compiler toolchain
+#
+include toolchain_rules.mk
+
+$(eval $(call generate_rules,$(LIB),$(SRCS)))
+
+# Set the target path where submodules will be deployed to,
+# functionally similar than the yotta_modules.
+SUBMODULE_BASE_PATH ?= $(CURDIR)/standalone_modules
+# List of libraries to build with Makefile.standalone
+LIBS := \
+
+# these will be downloaded, but built with special rules
+SPECIAL_LIBS := \
+    mbedtls \
+
+# Extend default clean rule
+clean: clean-extra
+
+$(TESTDIRS):
+	@yotta target frdm-k64f-gcc
+	@yotta install mbed-client
+	@yotta install mbed-client-mbed-os
+	@make -C $(@:build-%=%)
+
+$(CLEANDIRS):
+	@make -C $(@:clean-%=%) clean
+
+$(CLEANTESTDIRS):
+	@make -C $(@:clean-%=%) clean
+
+.PHONY: test
+test: $(TESTDIRS)
+	@rm -rf ./lcov
+	@rm -rf ./coverage
+	@mkdir -p lcov
+	@mkdir -p lcov/results
+	@mkdir coverage
+	@find ./test -name '*.xml' | xargs cp -t ./lcov/results/
+	@rm -f lcov/index.xml
+	@./xsl_script.sh
+	@cp junit_xsl.xslt lcov/.
+	@xsltproc -o lcov/testresults.html lcov/junit_xsl.xslt lcov/index.xml
+	@rm -f lcov/junit_xsl.xslt
+	@rm -f lcov/index.xml
+	@find ./ -name '*.gcno' | xargs cp --backup=numbered -t ./coverage/
+	@find ./ -name '*.gcda' | xargs cp --backup=numbered -t ./coverage/
+	gcovr --object-directory ./coverage --exclude-unreachable-branches --exclude '/usr' --exclude '.*mbed-client-mbed-tls_unit_tests_master*.' --exclude '.*mbed-client-mbed-os*.' --exclude '.*common*.' --exclude '.*mbed-net-sockets.v0*.' --exclude '.*stub*.' --exclude '/yotta_modules/' -x -o ./lcov/gcovr.xml
+	@lcov -d test/. -c -o $(COVERAGEFILE)
+	@lcov -q -r $(COVERAGEFILE) "/usr*" -o $(COVERAGEFILE)
+	@lcov -q -r $(COVERAGEFILE) "/test*" -o $(COVERAGEFILE)
+	@lcov -q -r $(COVERAGEFILE) "/mbed-client/*" -o $(COVERAGEFILE)
+	@genhtml -q $(COVERAGEFILE) --show-details --output-directory lcov/html
+	@yotta uninstall mbed-client
+	@yotta uninstall mbed-client-mbed-os
+	@echo mbed-client-mbed-tls module unit tests built
+
+
+BUILDDIRS := $(LIBS:%=build-%)
+.PHONY: $(BUILDDIRS)
+$(BUILDDIRS): 
+	echo $(@:build-%=%)
+	make -C $(SUBMODULE_BASE_PATH)/$(@:build-%=%) -f Makefile.standalone CC=$(CC) CPU=$(CPU)
+
+# Note: the correct CC is needed as parameter as the library names are also constructed uring it,
+# eg. libnsdl.a is actually libnsdl_gcc.a on GCC compilation.
+CLEANDIRS := $(LIBS:%=clean-%)
+.PHONY: $(CLEANDIRS)
+$(CLEANDIRS): 
+	echo $(@:clean-%=%)
+	make -C $(SUBMODULE_BASE_PATH)/$(@:clean-%=%) -f Makefile.standalone clean SUBMODULE_BASE_PATH=$(SUBMODULE_BASE_PATH) CC=$(CC) CPU=$(CPU)
+
+CLEAN_SPECIAL_DIRS := $(SPECIAL_LIBS:%=clean-%)
+.PHONY: $(CLEAN_SPECIAL_DIRS)
+$(CLEAN_SPECIAL_DIRS): 
+	echo $(@:clean-%=%)
+	make -C $(SUBMODULE_BASE_PATH)/$(@:clean-%=%) -f Makefile clean SUBMODULE_BASE_PATH=$(SUBMODULE_BASE_PATH) CC=$(CC) CPU=$(CPU)
+
+FETCH_SUB_MODULES := $(LIBS:%=fetch-%)
+.PHONY: $(FETCH_SUB_MODULES)
+$(FETCH_SUB_MODULES): $(SUBMODULE_BASE_PATH)
+	@echo $@
+	make -C $(SUBMODULE_BASE_PATH)/$(@:fetch-%=%) -f Makefile.standalone fetch_source SUBMODULE_BASE_PATH=$(SUBMODULE_BASE_PATH) CC=$(CC) CPU=$(CPU)
+
+# create the submodule dir if one does not exist
+$(SUBMODULE_BASE_PATH):
+	mkdir -p $(SUBMODULE_BASE_PATH)
+
+TARGET_MODULES := $(addprefix $(SUBMODULE_BASE_PATH)/, $(LIBS))
+TARGET_MODULES += $(addprefix $(SUBMODULE_BASE_PATH)/, $(SPECIAL_LIBS))
+
+$(TARGET_MODULES): | $(SUBMODULE_BASE_PATH)
+
+# macro for fetching the file content to a variable
+LIB_CONTENT = $(shell cat $1)
+
+GIT_URL = $(word 1, $(subst \#, , $1))
+GIT_HASH = $(word 2, $(subst \#, , $1))
+
+# Rule for processing the mbed-cli's submodule reference files (.lib).
+# The lib files contain a <repository-git-url>#<commit-hash> as a string
+# which is extracted and used for "git clone" + "git checkout" commands
+$(SUBMODULE_BASE_PATH)/% : %.lib
+	cd $(SUBMODULE_BASE_PATH) && \
+	if [ -d $@ ]; then \
+		echo Just update the repository && \
+		pwd &&\
+		cd $@ && \
+		git fetch; \
+	else \
+		echo Clone the repository && \
+		pwd && \
+		git clone $(call GIT_URL, $(call LIB_CONTENT, $<)) && \
+		cd $@; \
+	fi; \
+	git checkout $(call GIT_HASH, $(call LIB_CONTENT, $<))
+
+clean-extra: $(CLEANDIRS) $(CLEAN_SPECIAL_DIRS) $(CLEANTESTDIRS)
+
+# perform a git clone of the submodules listed in $(LIBS)
+.PHONY: fetch_source
+fetch_source: $(TARGET_MODULES) $(FETCH_SUB_MODULES)
+
