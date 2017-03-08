@@ -88,8 +88,9 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
         tr_error("pal_initTLSConfiguration failed");
         return -1;
     }
-
+  
     _init_done = M2MConnectionSecurityPimpl::INIT_CONFIGURING;
+
 
     if(_sec_mode == M2MConnectionSecurity::DTLS){
         pal_setHandShakeTimeOut(_conf, 20000);
@@ -268,3 +269,92 @@ void M2MConnectionSecurityPimpl::set_socket(palSocket_t socket, palSocketAddress
     }
 }
 
+uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const char *certificate)
+{
+    tr_debug("certificate_expiration_time");
+    mbedtls_x509_crt cert;
+    mbedtls_x509_crt_init(&cert);
+    uint32_t epoch_time = 0;
+
+    int ret = mbedtls_x509_crt_parse(&cert, (const unsigned char*)certificate,
+                           strlen(certificate) + 1);
+    if(ret == 0) {
+        mbedtls_x509_time time = cert.valid_to;
+        struct tm time_struct;
+        memset(&time_struct, 0, sizeof(struct tm));
+        time_struct.tm_hour = time.hour;
+        time_struct.tm_min = time.min;
+        time_struct.tm_mon = time.mon;
+        time_struct.tm_sec = time.sec;
+        time_struct.tm_year = time.year - 1900;
+        time_struct.tm_mday = time.day;
+        epoch_time = mktime(&time_struct);
+    } else {
+        tr_error("certificate_expiration_time - cert parsing failed: %d", ret);
+    }
+    mbedtls_x509_crt_free(&cert);
+    return epoch_time;
+}
+
+
+uint32_t M2MConnectionSecurityPimpl::certificate_validfrom_time(const char *certificate)
+{
+    tr_debug("certificate_validfrom_time");
+    mbedtls_x509_crt cert;
+    mbedtls_x509_crt_init(&cert);
+    uint32_t epoch_time = 0;
+
+    int ret = mbedtls_x509_crt_parse(&cert, (const unsigned char*)certificate,
+                           strlen(certificate) + 1);
+    if(ret == 0) {
+        mbedtls_x509_time time = cert.valid_from;
+        struct tm time_struct;
+        memset(&time_struct, 0, sizeof(struct tm));
+        time_struct.tm_hour = time.hour;
+        time_struct.tm_min = time.min;
+        time_struct.tm_mon = time.mon;
+        time_struct.tm_sec = time.sec;
+        time_struct.tm_year = time.year - 1900;
+        time_struct.tm_mday = time.day;
+        epoch_time = mktime(&time_struct);
+    } else {
+        tr_error("certificate_validfrom_time - cert parsing failed: %d", ret);
+    }
+    mbedtls_x509_crt_free(&cert);
+    return epoch_time;
+}
+
+bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecurity *security)
+{
+    // Get time from device object
+    M2MDevice *device = M2MInterfaceFactory::create_device();
+    uint8_t *server_certificate = NULL;
+    int64_t server_validfrom = 0;
+    int64_t server_validto = 0;
+    int64_t device_time = 0;
+
+    if (device == NULL || security == NULL || device->is_resource_present(M2MDevice::CurrentTime) == false) {
+        // No time from device object or security object available, fail connector registration
+        return false;
+    }
+
+    // Get time from device object
+    device_time = device->resource_value_int(M2MDevice::CurrentTime, 0);
+
+    // Get certificate
+    if (security->resource_value_buffer(M2MSecurity::ServerPublicKey, server_certificate) == 0 || server_certificate == NULL) {
+        // No certificate to check, return fail
+        return false;
+    }
+
+    // Get the validFrom and validTo fields from certificate
+    server_validfrom = (int64_t)certificate_validfrom_time((const char*)server_certificate);
+    server_validto = (int64_t)certificate_expiration_time((const char*)server_certificate);
+
+    if (device_time < server_validfrom || device_time > server_validto) {
+        // Device time outside of certificates validity period, fail connector registration
+        return false;
+    }
+
+    return true;
+}
