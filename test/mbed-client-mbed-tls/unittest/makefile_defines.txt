@@ -11,17 +11,24 @@ INCLUDE_DIRS =\
   ../../../../source/include\
   ../../../../source\
   ../../../../\
-  ../../../../yotta_modules/mbed-client/mbed-client\
-  ../../../../yotta_modules/mbed-client\
-  ../../../../yotta_modules/mbed-client/source\
-  ../../../../yotta_modules/mbed-client/source/include\
-  ../../../../yotta_modules/mbed-client-c\
-  ../../../../yotta_modules/mbed-client-c/source\
-  ../../../../yotta_modules/mbed-coap/mbed-coap\
-  ../../../../yotta_modules/mbedtls\
-  ../../../../yotta_modules/mbed-client-mbed-os\
-  ../../../../yotta_modules/nanostack-libservice\
-  ../../../../yotta_modules/mbed-trace\
+  ../../../../test_modules/mbed-client-pal/Source/PAL-Impl/Services-API/\
+  ../../../../test_modules/mbed-client-pal/Source/Port/Platform-API/\
+  ../../../../test_modules/mbed-client-pal/Source/Port/Reference-Impl/mbedOS/CFStore/\
+  ../../../../test_modules/mbed-os/features/FEATURE_COMMON_PAL/nanostack-hal-mbed-cmsis-rtos\
+  ../../../../test_modules/mbed-os/features/storage/FEATURE_STORAGE/cfstore/configuration-store/\
+  ../../../../test_modules/mbed-os/hal/storage_abstraction/\
+  ../../../../test_modules/mbed-client/mbed-client\
+  ../../../../test_modules/mbed-client\
+  ../../../../test_modules/mbed-client/source\
+  ../../../../test_modules/mbed-client/source/include\
+  ../../../../test_modules/mbed-client-c\
+  ../../../../test_modules/mbed-client-c/source/libNsdl\
+  ../../../../test_modules/mbed-client-c/source/libNsdl/src/include\
+  ../../../../test_modules/mbed-client-classic/mbed-client-classic\
+  ../../../../test_modules/mbedtls\
+  ../../../../test_modules/mbedtls/include\
+  ../../../../test_modules/nanostack-libservice\
+  ../../../../test_modules/mbed-trace\
   /usr/include\
   $(CPPUTEST_HOME)/include\
 

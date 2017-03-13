@@ -1,48 +1,28 @@
 #
-# Makefile for running unit tests
+# Makefile.test for mbed-client-mbed-tls unit tests
 #
+
+
 # List of subdirectories to build
 TEST_FOLDER := ./test/
-
-LIB = libmbed-client-mbedtls.a
-
 # List of unit test directories for libraries
 UNITTESTS := $(sort $(dir $(wildcard $(TEST_FOLDER)*/unittest/*)))
 TESTDIRS := $(UNITTESTS:%=build-%)
 CLEANTESTDIRS := $(UNITTESTS:%=clean-%)
 COVERAGEFILE := ./lcov/coverage.info
 
-include sources.mk
-include include_dirs.mk
-
-override CFLAGS += $(addprefix -I,$(INCLUDE_DIRS))
-override CFLAGS += $(addprefix -D,$(FLAGS))
-ifeq ($(DEBUG),1)
-override CFLAGS += -DHAVE_DEBUG
-endif
-
-#
-# Define compiler toolchain
-#
-include toolchain_rules.mk
-
-$(eval $(call generate_rules,$(LIB),$(SRCS)))
-
-# Extend default clean rule
-clean: clean-extra
-
-$(TESTDIRS):
-	@yotta target frdm-k64f-gcc
-	@yotta install mbed-client
-	@yotta install mbed-client-c
-	@yotta install mbed-client-mbed-os
-	@make -C $(@:build-%=%)
-
-$(CLEANDIRS):
-	@make -C $(@:clean-%=%) clean
-
-$(CLEANTESTDIRS):
-	@make -C $(@:clean-%=%) clean
+.PHONY: clone
+clone:
+	@rm -rf ./test_modules
+	@mkdir -p test_modules
+	@git clone --depth 1 git@github.com:ARMmbed/mbed-os.git ./test_modules/mbed-os
+	@git clone --depth 1 git@github.com:ARMmbed/mbed-trace.git ./test_modules/mbed-trace
+	@git clone --depth 1 git@github.com:ARMmbed/nanostack-libservice.git ./test_modules/nanostack-libservice
+	@git clone --depth 1 git@github.com:ARMmbed/mbed-client-c.git ./test_modules/mbed-client-c
+	@git clone --depth 1 git@github.com:ARMmbed/mbed-client.git ./test_modules/mbed-client
+	@git clone --depth 1 git@github.com:ARMmbed/mbed-client-classic.git ./test_modules/mbed-client-classic
+	@git clone --depth 1 git@github.com:ARMmbed/mbedtls.git ./test_modules/mbedtls
+	@git clone --depth 1 git@github.com:ARMmbed/mbed-client-pal.git ./test_modules/mbed-client-pal
 
 .PHONY: test
 test: $(TESTDIRS)
@@ -60,16 +40,25 @@ test: $(TESTDIRS)
 	@rm -f lcov/index.xml
 	@find ./ -name '*.gcno' | xargs cp --backup=numbered -t ./coverage/
 	@find ./ -name '*.gcda' | xargs cp --backup=numbered -t ./coverage/
-	gcovr --object-directory ./coverage --exclude-unreachable-branches --exclude '/usr' --exclude '.*mbed-client-mbed-tls_unit_tests_master*.' --exclude '.*mbed-client-mbed-os*.' --exclude '.*common*.' --exclude '.*mbed-net-sockets.v0*.' --exclude '.*stub*.' --exclude '/yotta_modules/' -x -o ./lcov/gcovr.xml
+	@gcovr --object-directory ./coverage  --exclude-unreachable-branches -e '.*/builds/.*' -e '.*/test/.*' -e '.*/test_modules/.*' -e '.*/stubs/.*' -e '.*/mbed-client-classic/.*' -e '.*/usr/.*' -x -o ./lcov/gcovr.xml
 	@lcov -d test/. -c -o $(COVERAGEFILE)
 	@lcov -q -r $(COVERAGEFILE) "/usr*" -o $(COVERAGEFILE)
 	@lcov -q -r $(COVERAGEFILE) "/test*" -o $(COVERAGEFILE)
-	@lcov -q -r $(COVERAGEFILE) "/mbed-client/*" -o $(COVERAGEFILE)
+	@lcov -q -r $(COVERAGEFILE) "/mbed-client-libservice*" -o $(COVERAGEFILE)
 	@genhtml -q $(COVERAGEFILE) --show-details --output-directory lcov/html
-	@yotta uninstall mbed-client-c
-	@yotta uninstall mbed-client
-	@yotta uninstall mbed-client-mbed-os
-	@echo mbed-client-mbed-tls module unit tests built
+	@echo mbed-client-classic module unit tests built
+
+$(TESTDIRS):
+	@make -C $(@:build-%=%)
+
+$(CLEANDIRS):
+	@make -C $(@:clean-%=%) clean
+
+$(CLEANTESTDIRS):
+	@make -C $(@:clean-%=%) clean
+
+# Extend default clean rule
+clean: clean-extra
 
 clean-extra: $(CLEANDIRS) \
-	$(CLEANTESTDIRS)
+$(CLEANTESTDIRS)

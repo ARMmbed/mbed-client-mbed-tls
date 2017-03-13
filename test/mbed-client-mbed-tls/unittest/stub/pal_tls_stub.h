@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef M2MSTRINGBUFFERBASE_STUB_H
-#define M2MSTRINGBUFFERBASE_STUB_H
+#ifndef PAL_TLS_STUB_H
+#define PAL_TLS_STUB_H
+extern "C"{
+#include "pal_TLS.h"
+}
+namespace pal_tls_stub
+{
+    extern palStatus_t status;
+    extern palStatus_t new_status;
+    extern uint32_t change_status_count; //status changed to new_status after this turns to 0
+}
 
-#include "m2mstringbufferbase.h"
-
-#endif // M2MSTRINGBUFFERBASE_STUB_H
+#endif // PAL_TLS_STUB_H

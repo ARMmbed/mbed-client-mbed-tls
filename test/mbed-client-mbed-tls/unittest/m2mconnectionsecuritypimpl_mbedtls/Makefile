@@ -17,6 +17,7 @@ TEST_SRC_FILES = \
         ../stub/m2mconnectionhandler_stub.cpp \
         ../stub/m2mconnectionsecurity_stub.cpp \
         ../stub/m2mstringbufferbase_stub.cpp \
-        ../stub/nsdlaccesshelper_stub.cpp
+        ../stub/nsdlaccesshelper_stub.cpp \
+        ../stub/pal_tls_stub.cpp \
 
 include ../MakefileWorker.mk
