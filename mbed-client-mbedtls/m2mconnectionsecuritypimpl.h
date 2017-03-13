@@ -24,6 +24,14 @@
 extern "C"{
 #include "pal_TLS.h"
 }
+#include "mbedtls/config.h"
+#include "mbedtls/platform.h"
+#include "mbedtls/debug.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/error.h"
+#include "mbedtls/certs.h"
 #ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"

@@ -21,6 +21,8 @@
 extern "C"{
 #include "pal_TLS.h"
 }
+#include "m2mdevice.h"
+#include "m2minterfacefactory.h"
 #include <string.h>
 
 #define TRACE_GROUP "mClt"
@@ -104,6 +106,13 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
         palX509_t owncert;
         palPrivateKey_t privateKey;
         palX509_t caChain;
+
+        // Check if we are connecting to M2MServer and check if server certificate is valid, no need to do this
+        // for Bootstrap currently
+        if (security->server_type() == M2MSecurity::M2MServer && !check_server_certificate_validity(security)) {
+            tr_error("M2MConnectionSecurityPimpl::init - M2MServer certificate invalid!");
+            return -1;
+        }
 
         owncert.size = 1 + security->resource_value_buffer(M2MSecurity::PublicKey, (const uint8_t*&)owncert.buffer);
         privateKey.size = 1 + security->resource_value_buffer(M2MSecurity::Secretkey, (const uint8_t*&)privateKey.buffer);
@@ -334,7 +343,7 @@ bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecu
     int64_t device_time = 0;
 
     if (device == NULL || security == NULL || device->is_resource_present(M2MDevice::CurrentTime) == false) {
-        // No time from device object or security object available, fail connector registration
+        tr_error("No time from device object or security object available, fail connector registration %p, %p, %d\n",device,security,device->is_resource_present(M2MDevice::CurrentTime));
         return false;
     }
 
@@ -343,7 +352,7 @@ bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecu
 
     // Get certificate
     if (security->resource_value_buffer(M2MSecurity::ServerPublicKey, server_certificate) == 0 || server_certificate == NULL) {
-        // No certificate to check, return fail
+        tr_error("No certificate to check, return fail");
         return false;
     }
 
@@ -352,7 +361,7 @@ bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecu
     server_validto = (int64_t)certificate_expiration_time((const char*)server_certificate);
 
     if (device_time < server_validfrom || device_time > server_validto) {
-        // Device time outside of certificates validity period, fail connector registration
+        tr_error("Device time outside of certificates validity period, fail connector registration");
         return false;
     }
 
