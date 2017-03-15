@@ -24,14 +24,6 @@
 extern "C"{
 #include "pal_TLS.h"
 }
-#include "mbedtls/config.h"
-#include "mbedtls/platform.h"
-#include "mbedtls/debug.h"
-#include "mbedtls/ssl.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/error.h"
-#include "mbedtls/certs.h"
 #ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
@@ -146,6 +138,15 @@ private:
     *  \return epoch time or 0 if failure.
     */
     uint32_t certificate_validfrom_time(const char *certificate);
+
+    /**
+    *  \brief Returns certificate validFrom and validTo times in epoch format.
+    *  \param certificate, The certificate to be extracted.
+    *  \param valid_from ValidFrom time will be written to this parameter on success.
+    *  \param valid_to ValidTo time will be written to this parameter on success.
+    *  \return true on success or false on failure.
+    */
+    bool certificate_parse_valid_time(const char *certificate, uint32_t *valid_from, uint32_t *valid_to);
 
     /**
     * \brief A utility function to check if provided security object
