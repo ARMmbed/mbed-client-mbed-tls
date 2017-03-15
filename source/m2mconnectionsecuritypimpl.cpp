@@ -20,6 +20,7 @@
 #include "mbed-trace/mbed_trace.h"
 extern "C"{
 #include "pal_TLS.h"
+#include "pal_Crypto.h"
 }
 #include "m2mdevice.h"
 #include "m2minterfacefactory.h"
@@ -276,61 +277,39 @@ void M2MConnectionSecurityPimpl::set_socket(palSocket_t socket, palSocketAddress
     else{
         tls_socket.transportationMode = PAL_DTLS_MODE;
     }
-}
 
-uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const char *certificate)
+
+bool M2MConnectionSecurityPimpl::certificate_parse_valid_time(const char *certificate, uint32_t *valid_from, uint32_t *valid_to)
 {
-    tr_debug("certificate_expiration_time");
-    mbedtls_x509_crt cert;
-    mbedtls_x509_crt_init(&cert);
-    uint32_t epoch_time = 0;
+    palX509Handle_t cert;
+    size_t len;
+    palStatus_t ret;
 
-    int ret = mbedtls_x509_crt_parse(&cert, (const unsigned char*)certificate,
-                           strlen(certificate) + 1);
-    if(ret == 0) {
-        mbedtls_x509_time time = cert.valid_to;
-        struct tm time_struct;
-        memset(&time_struct, 0, sizeof(struct tm));
-        time_struct.tm_hour = time.hour;
-        time_struct.tm_min = time.min;
-        time_struct.tm_mon = time.mon;
-        time_struct.tm_sec = time.sec;
-        time_struct.tm_year = time.year - 1900;
-        time_struct.tm_mday = time.day;
-        epoch_time = mktime(&time_struct);
-    } else {
-        tr_error("certificate_expiration_time - cert parsing failed: %d", ret);
-    }
-    mbedtls_x509_crt_free(&cert);
-    return epoch_time;
-}
-
-
-uint32_t M2MConnectionSecurityPimpl::certificate_validfrom_time(const char *certificate)
-{
     tr_debug("certificate_validfrom_time");
-    mbedtls_x509_crt cert;
-    mbedtls_x509_crt_init(&cert);
-    uint32_t epoch_time = 0;
 
-    int ret = mbedtls_x509_crt_parse(&cert, (const unsigned char*)certificate,
-                           strlen(certificate) + 1);
-    if(ret == 0) {
-        mbedtls_x509_time time = cert.valid_from;
-        struct tm time_struct;
-        memset(&time_struct, 0, sizeof(struct tm));
-        time_struct.tm_hour = time.hour;
-        time_struct.tm_min = time.min;
-        time_struct.tm_mon = time.mon;
-        time_struct.tm_sec = time.sec;
-        time_struct.tm_year = time.year - 1900;
-        time_struct.tm_mday = time.day;
-        epoch_time = mktime(&time_struct);
-    } else {
-        tr_error("certificate_validfrom_time - cert parsing failed: %d", ret);
+    if(PAL_SUCCESS != (ret = pal_x509Initiate(&cert))) {
+        tr_error("certificate_validfrom_time - cert init failed: %d", (int)ret);
+        pal_x509Free(&cert);
+        return false;
     }
-    mbedtls_x509_crt_free(&cert);
-    return epoch_time;
+    if(PAL_SUCCESS != (ret = pal_x509CertParse(cert, (const unsigned char*)certificate, strlen(certificate) + 1))) {
+        tr_error("certificate_validfrom_time - cert parse failed: %d", (int)ret);
+        pal_x509Free(&cert);
+        return false;
+    }
+    if(PAL_SUCCESS != (ret = pal_x509CertGetAttribute(cert, PAL_X509_VALID_FROM, valid_from, sizeof(uint32_t), &len))) {
+        tr_error("certificate_validfrom_time - cert attr get failed: %d", (int)ret);
+        pal_x509Free(&cert);
+        return false;
+    }
+    if(PAL_SUCCESS != (ret = pal_x509CertGetAttribute(cert, PAL_X509_VALID_TO, valid_to, sizeof(uint32_t), &len))) {
+        tr_error("certificate_validfrom_time - cert attr get failed: %d", (int)ret);
+        pal_x509Free(&cert);
+        return false;
+    }
+
+    pal_x509Free(&cert);
+    return true;
 }
 
 bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecurity *security)
@@ -338,12 +317,12 @@ bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecu
     // Get time from device object
     M2MDevice *device = M2MInterfaceFactory::create_device();
     uint8_t *server_certificate = NULL;
-    int64_t server_validfrom = 0;
-    int64_t server_validto = 0;
+    uint32_t server_validfrom = 0;
+    uint32_t server_validto = 0;
     int64_t device_time = 0;
 
     if (device == NULL || security == NULL || device->is_resource_present(M2MDevice::CurrentTime) == false) {
-        tr_error("No time from device object or security object available, fail connector registration %p, %p, %d\n",device,security,device->is_resource_present(M2MDevice::CurrentTime));
+        tr_error("No time from device object or security object available, fail connector registration %p, %p, %d",device,security,device->is_resource_present(M2MDevice::CurrentTime));
         return false;
     }
 
@@ -357,8 +336,10 @@ bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecu
     }
 
     // Get the validFrom and validTo fields from certificate
-    server_validfrom = (int64_t)certificate_validfrom_time((const char*)server_certificate);
-    server_validto = (int64_t)certificate_expiration_time((const char*)server_certificate);
+    if(!certificate_parse_valid_time((const char*)server_certificate, &server_validfrom, &server_validto)) {
+        tr_error("Certificate time parsing failed");
+        return false;
+    }
 
     if (device_time < server_validfrom || device_time > server_validto) {
         tr_error("Device time outside of certificates validity period, fail connector registration");
