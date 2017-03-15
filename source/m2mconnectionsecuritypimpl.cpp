@@ -277,7 +277,7 @@ void M2MConnectionSecurityPimpl::set_socket(palSocket_t socket, palSocketAddress
     else{
         tls_socket.transportationMode = PAL_DTLS_MODE;
     }
-}
+
 
 bool M2MConnectionSecurityPimpl::certificate_parse_valid_time(const char *certificate, uint32_t *valid_from, uint32_t *valid_to)
 {
