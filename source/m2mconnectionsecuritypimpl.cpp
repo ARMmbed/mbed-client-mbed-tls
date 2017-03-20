@@ -18,10 +18,7 @@
 #include "mbed-client-mbedtls/m2mconnectionsecuritypimpl.h"
 #include "mbed-client/m2msecurity.h"
 #include "mbed-trace/mbed_trace.h"
-extern "C"{
-#include "pal_TLS.h"
-#include "pal_Crypto.h"
-}
+#include "pal.h"
 #include "m2mdevice.h"
 #include "m2minterfacefactory.h"
 #include <string.h>
@@ -166,7 +163,6 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
     return 0;
 }
 
-
 int M2MConnectionSecurityPimpl::start_handshake()
 {
     tr_debug("M2MConnectionSecurityPimpl::start_handshake");
@@ -250,7 +246,6 @@ int M2MConnectionSecurityPimpl::read(unsigned char* buffer, uint16_t len)
 
     return ret;
 }
-
 
 void M2MConnectionSecurityPimpl::set_random_number_callback(random_number_cb callback)
 {

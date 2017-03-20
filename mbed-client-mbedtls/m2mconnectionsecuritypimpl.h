@@ -21,9 +21,7 @@
 #include "mbed-client/m2mtimerobserver.h"
 #include "mbed-client/m2mconstants.h"
 #include "mbed-client/m2msecurity.h"
-extern "C"{
-#include "pal_TLS.h"
-}
+#include "pal.h"
 #ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
