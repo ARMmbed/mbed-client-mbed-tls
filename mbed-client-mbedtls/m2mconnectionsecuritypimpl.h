@@ -22,10 +22,6 @@
 #include "mbed-client/m2mconstants.h"
 #include "mbed-client/m2msecurity.h"
 #include "pal.h"
-#ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
-#include "mbedtls/entropy.h"
-#include "mbedtls/entropy_poll.h"
-#endif
 
 /**
  * @brief The M2MConnectionSecurityPimpl class
@@ -156,14 +152,12 @@ private:
 
 private:
 
-    uint8_t                     _init_done;
-    palTLSConfHandle_t          _conf;
-    palTLSHandle_t              _ssl;
+    uint8_t                             _init_done;
+    palTLSConfHandle_t                  _conf;
+    palTLSHandle_t                      _ssl;
     M2MConnectionSecurity::SecurityMode _sec_mode;
-    palTLSSocket_t tls_socket;
-#ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
-    mbedtls_entropy_context _entropy;
-#endif
+    palTLSSocket_t                      tls_socket;
+    entropy_cb                          _entropy;
 
     friend class Test_M2MConnectionSecurityPimpl;
 };

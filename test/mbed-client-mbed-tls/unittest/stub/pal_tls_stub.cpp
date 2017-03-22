@@ -50,6 +50,11 @@ palStatus_t pal_freeTLS(palTLSHandle_t* palTLSHandle)
     return get_pal_status();
 }
 
+palStatus_t pal_addEntropySource(palEntropySource_f entropyCallback)
+{
+    return get_pal_status();
+}
+
 palStatus_t pal_initTLSConfiguration(palTLSConfHandle_t* palTLSConf, palTLSTransportMode_t transportationMode)
 {
     return get_pal_status();

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef PAL_TLS_STUB_H
-#define PAL_TLS_STUB_H
+#ifndef PAL_CRYPTO_STUB_H
+#define PAL_CRYPTO_STUB_H
 
 #include "pal.h"
 
-namespace pal_tls_stub
+namespace pal_crypto_stub
 {
     extern palStatus_t status;
     extern palStatus_t new_status;
     extern uint32_t change_status_count; //status changed to new_status after this turns to 0
 }
 
-#endif // PAL_TLS_STUB_H
+#endif // PAL_CRYPTO_STUB_H

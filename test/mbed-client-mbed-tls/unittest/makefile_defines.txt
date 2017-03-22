@@ -21,6 +21,7 @@ INCLUDE_DIRS =\
   ../../../../test_modules/mbed-client\
   ../../../../test_modules/mbed-client/source\
   ../../../../test_modules/mbed-client/source/include\
+  ../../../../test_modules/mbed-coap/mbed-coap\
   ../../../../test_modules/mbed-client-c\
   ../../../../test_modules/mbed-client-c/source/libNsdl\
   ../../../../test_modules/mbed-client-c/source/libNsdl/src/include\
@@ -32,4 +33,4 @@ INCLUDE_DIRS =\
   /usr/include\
   $(CPPUTEST_HOME)/include\
 
-CPPUTESTFLAGS = -D__thumb2__ -w
+CPPUTESTFLAGS = -D__thumb2__ -w -DTARGET_IS_PC_LINUX

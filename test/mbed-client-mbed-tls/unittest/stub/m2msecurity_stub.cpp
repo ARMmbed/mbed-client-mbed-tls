@@ -89,8 +89,9 @@ uint32_t M2MSecurity::resource_value_buffer(SecurityResource,
 uint32_t M2MSecurity::resource_value_buffer(SecurityResource,
                                const uint8_t *&value) const
 {
+    static const uint8_t const_value[5] = {0};
     if( m2msecurity_stub::has_value ){
-        value = NULL;
+        value = const_value;
         return 5;
     }
     return m2msecurity_stub::int_value;

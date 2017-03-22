@@ -25,10 +25,6 @@
 
 #define TRACE_GROUP "mClt"
 
-#ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
-static entropy_cb entropy_callback;
-#endif
-
 M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
     :_init_done(M2MConnectionSecurityPimpl::INIT_NOT_STARTED),
      _conf(0),
@@ -67,17 +63,11 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
         return -1;
     }
 
-#ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
-
-    if(entropy_callback.entropy_source_ptr) {
-        if( mbedtls_entropy_add_source( &_entropy, entropy_callback.entropy_source_ptr,
-                                        entropy_callback.p_source,entropy_callback.threshold,
-                                        entropy_callback.strong ) < 0 ){
+    if(_entropy.entropy_source_ptr) {
+        if(PAL_SUCCESS != pal_addEntropySource(_entropy.entropy_source_ptr) < 0 ){
             return -1;
         }
     }
-
-#endif
 
     palTLSTransportMode_t mode = PAL_DTLS_MODE;
     if(_sec_mode == M2MConnectionSecurity::TLS){
@@ -254,10 +244,9 @@ void M2MConnectionSecurityPimpl::set_random_number_callback(random_number_cb cal
 
 void M2MConnectionSecurityPimpl::set_entropy_callback(entropy_cb callback)
 {
-#ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
-    entropy_callback = callback;
-#endif
-    (void)callback;
+
+    _entropy = callback;
+
 }
 
 void M2MConnectionSecurityPimpl::set_socket(palSocket_t socket, palSocketAddress_t *address)
@@ -311,7 +300,7 @@ bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecu
 {
     // Get time from device object
     M2MDevice *device = M2MInterfaceFactory::create_device();
-    uint8_t *server_certificate = NULL;
+    const uint8_t *server_certificate = NULL;
     uint32_t server_validfrom = 0;
     uint32_t server_validto = 0;
     int64_t device_time = 0;
@@ -343,3 +332,4 @@ bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecu
 
     return true;
 }
+
