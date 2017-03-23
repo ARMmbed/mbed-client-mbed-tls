@@ -25,6 +25,12 @@ extern "C"{
 #include "m2minterfacefactory.h"
 #include <string.h>
 
+// Note: this macro is needed on armcc to get the the PRI*32 macros
+// from inttypes.h in a C++ code.
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+
 #define TRACE_GROUP "mClt"
 
 #ifdef MBED_CLOUD_CLIENT_CUSTOM_MBEDTLS_ENTROPY
@@ -90,7 +96,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
         tr_error("pal_initTLSConfiguration failed");
         return -1;
     }
-  
+
     _init_done = M2MConnectionSecurityPimpl::INIT_CONFIGURING;
 
 
@@ -278,7 +284,7 @@ void M2MConnectionSecurityPimpl::set_socket(palSocket_t socket, palSocketAddress
     }
 }
 
-uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const char *certificate)
+uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const char *certificate, uint32_t cert_len)
 {
     tr_debug("certificate_expiration_time");
     mbedtls_x509_crt cert;
@@ -286,7 +292,7 @@ uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const char *cer
     uint32_t epoch_time = 0;
 
     int ret = mbedtls_x509_crt_parse(&cert, (const unsigned char*)certificate,
-                           strlen(certificate) + 1);
+                           cert_len + 1);
     if(ret == 0) {
         mbedtls_x509_time time = cert.valid_to;
         struct tm time_struct;
@@ -306,15 +312,15 @@ uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const char *cer
 }
 
 
-uint32_t M2MConnectionSecurityPimpl::certificate_validfrom_time(const char *certificate)
+uint32_t M2MConnectionSecurityPimpl::certificate_validfrom_time(const char *certificate, uint32_t cert_len)
 {
-    tr_debug("certificate_validfrom_time");
+    tr_debug("M2MConnectionSecurityPimpl::certificate_validfrom_time");
     mbedtls_x509_crt cert;
     mbedtls_x509_crt_init(&cert);
     uint32_t epoch_time = 0;
 
     int ret = mbedtls_x509_crt_parse(&cert, (const unsigned char*)certificate,
-                           strlen(certificate) + 1);
+                           cert_len + 1);
     if(ret == 0) {
         mbedtls_x509_time time = cert.valid_from;
         struct tm time_struct;
@@ -351,14 +357,19 @@ bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecu
     device_time = device->resource_value_int(M2MDevice::CurrentTime, 0);
 
     // Get certificate
-    if (security->resource_value_buffer(M2MSecurity::ServerPublicKey, server_certificate) == 0 || server_certificate == NULL) {
+    uint32_t cert_len = security->resource_value_buffer(M2MSecurity::PublicKey, server_certificate);
+    if (cert_len == 0 || server_certificate == NULL) {
         tr_error("No certificate to check, return fail");
         return false;
     }
 
     // Get the validFrom and validTo fields from certificate
-    server_validfrom = (int64_t)certificate_validfrom_time((const char*)server_certificate);
-    server_validto = (int64_t)certificate_expiration_time((const char*)server_certificate);
+    server_validfrom = (int64_t)certificate_validfrom_time((const char*)server_certificate, cert_len);
+    server_validto = (int64_t)certificate_expiration_time((const char*)server_certificate, cert_len);
+    free(server_certificate);
+    tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - valid from: %" PRId32,server_validfrom);
+    tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - valid to: %" PRId32,server_validto);
+    tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - device time: %" PRId32,device_time);
 
     if (device_time < server_validfrom || device_time > server_validto) {
         tr_error("Device time outside of certificates validity period, fail connector registration");

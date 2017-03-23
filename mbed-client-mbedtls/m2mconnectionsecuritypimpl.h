@@ -136,16 +136,18 @@ private:
     /**
     *  \brief Returns certificate expiration time in epoch format.
     *  \param certificate, The certificate to be extracted.
+    *  \param cert_len, Length of the certificate.
     *  \return epoch time or 0 if failure.
     */
-    uint32_t certificate_expiration_time(const char *certificate);
+    uint32_t certificate_expiration_time(const char *certificate, uint32_t cert_len);
 
     /**
     *  \brief Returns certificate validFrom time in epoch format.
     *  \param certificate, The certificate to be extracted.
+    *  \param cert_len, Length of the certificate.
     *  \return epoch time or 0 if failure.
     */
-    uint32_t certificate_validfrom_time(const char *certificate);
+    uint32_t certificate_validfrom_time(const char *certificate, uint32_t cert_len);
 
     /**
     * \brief A utility function to check if provided security object
