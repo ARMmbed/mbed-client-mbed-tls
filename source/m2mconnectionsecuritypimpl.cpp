@@ -299,7 +299,7 @@ uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const char *cer
         memset(&time_struct, 0, sizeof(struct tm));
         time_struct.tm_hour = time.hour;
         time_struct.tm_min = time.min;
-        time_struct.tm_mon = time.mon;
+        time_struct.tm_mon = time.mon - 1;
         time_struct.tm_sec = time.sec;
         time_struct.tm_year = time.year - 1900;
         time_struct.tm_mday = time.day;
@@ -327,7 +327,7 @@ uint32_t M2MConnectionSecurityPimpl::certificate_validfrom_time(const char *cert
         memset(&time_struct, 0, sizeof(struct tm));
         time_struct.tm_hour = time.hour;
         time_struct.tm_min = time.min;
-        time_struct.tm_mon = time.mon;
+        time_struct.tm_mon = time.mon - 1;
         time_struct.tm_sec = time.sec;
         time_struct.tm_year = time.year - 1900;
         time_struct.tm_mday = time.day;
