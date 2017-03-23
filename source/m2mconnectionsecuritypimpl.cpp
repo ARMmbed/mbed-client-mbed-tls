@@ -115,7 +115,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
 
         // Check if we are connecting to M2MServer and check if server certificate is valid, no need to do this
         // for Bootstrap currently
-        if (security->server_type() == M2MSecurity::M2MServer && !check_server_certificate_validity(security)) {
+        if (security->server_type() == M2MSecurity::M2MServer && !check_security_object_validity(security)) {
             tr_error("M2MConnectionSecurityPimpl::init - M2MServer certificate invalid!");
             return -1;
         }
@@ -339,40 +339,65 @@ uint32_t M2MConnectionSecurityPimpl::certificate_validfrom_time(const char *cert
     return epoch_time;
 }
 
-bool M2MConnectionSecurityPimpl::check_server_certificate_validity(const M2MSecurity *security)
-{
+bool M2MConnectionSecurityPimpl::check_security_object_validity(const M2MSecurity *security) {
     // Get time from device object
     M2MDevice *device = M2MInterfaceFactory::create_device();
-    uint8_t *server_certificate = NULL;
-    int64_t server_validfrom = 0;
-    int64_t server_validto = 0;
+    const uint8_t *certificate = NULL;
     int64_t device_time = 0;
+    uint32_t cert_len = 0;
 
     if (device == NULL || security == NULL || device->is_resource_present(M2MDevice::CurrentTime) == false) {
-        tr_error("No time from device object or security object available, fail connector registration %p, %p, %d\n",device,security,device->is_resource_present(M2MDevice::CurrentTime));
+        tr_error("No time from device object or security object available, fail connector registration %p, %p, %d\n", device,security, device->is_resource_present(M2MDevice::CurrentTime));
         return false;
     }
 
     // Get time from device object
     device_time = device->resource_value_int(M2MDevice::CurrentTime, 0);
 
-    // Get certificate
-    uint32_t cert_len = security->resource_value_buffer(M2MSecurity::PublicKey, server_certificate);
-    if (cert_len == 0 || server_certificate == NULL) {
+    tr_info("Checking client certificate validity");
+
+    // Get client certificate
+    cert_len = security->resource_value_buffer(M2MSecurity::PublicKey, certificate);
+    if (cert_len == 0 || certificate == NULL) {
         tr_error("No certificate to check, return fail");
         return false;
     }
 
+    if (!check_certificate_validity(certificate, cert_len, device_time)) {
+        tr_error("Client certificate not valid!");
+        return false;
+    }
+
+    tr_info("Checking server certificate validity");
+
+    // Get server certificate
+    cert_len = security->resource_value_buffer(M2MSecurity::ServerPublicKey, certificate);
+    if (cert_len == 0 || certificate == NULL) {
+        tr_error("No certificate to check, return fail");
+        return false;
+    }
+
+    if (!check_certificate_validity(certificate, cert_len, device_time)) {
+        tr_error("Server certificate not valid!");
+        return false;
+    }
+
+    return true;
+}
+
+bool M2MConnectionSecurityPimpl::check_certificate_validity(const uint8_t *cert, const uint32_t cert_len, const int64_t device_time)
+{
+
     // Get the validFrom and validTo fields from certificate
-    server_validfrom = (int64_t)certificate_validfrom_time((const char*)server_certificate, cert_len);
-    server_validto = (int64_t)certificate_expiration_time((const char*)server_certificate, cert_len);
-    free(server_certificate);
-    tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - valid from: %" PRId32,server_validfrom);
-    tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - valid to: %" PRId32,server_validto);
-    tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - device time: %" PRId32,device_time);
+    int64_t server_validfrom = (int64_t)certificate_validfrom_time((const char*)cert, cert_len);
+    int64_t server_validto = (int64_t)certificate_expiration_time((const char*)cert, cert_len);
+
+    tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - valid from: %" PRId64, server_validfrom);
+    tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - valid to: %" PRId64, server_validto);
+    tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - device time: %" PRId64, device_time);
 
     if (device_time < server_validfrom || device_time > server_validto) {
-        tr_error("Device time outside of certificates validity period, fail connector registration");
+        tr_error("Device time outside of certificate validity period!");
         return false;
     }
 

@@ -150,12 +150,19 @@ private:
     uint32_t certificate_validfrom_time(const char *certificate, uint32_t cert_len);
 
     /**
-    * \brief A utility function to check if provided security object
-    * has a certificate that is valid with current time set in device object
-    * \return True if certificate is valid, false if M2MSecurity or M2MDevice
-    * objects are missing, or if current time is not within validity period
+    * \brief A utility function to check if provided certificate is valid with given time
+    * \return True if certificate is valid, false if not
     */
-    bool check_server_certificate_validity(const M2MSecurity *security);
+    bool check_certificate_validity(const uint8_t *cert, const uint32_t cert_len, const int64_t device_time);
+
+    /**
+    * \brief A utility function to check if provided security object
+    * has client and server certificates that are valid with current time set
+    * in device object
+    * \return True if certificates are valid, false if M2MSecurity or M2MDevice
+    * objects are missing, or if current time is not within the validity periods
+    */
+    bool check_security_object_validity(const M2MSecurity *security);
 
 private:
 
