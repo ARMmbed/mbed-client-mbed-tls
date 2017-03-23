@@ -284,14 +284,14 @@ void M2MConnectionSecurityPimpl::set_socket(palSocket_t socket, palSocketAddress
     }
 }
 
-uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const char *certificate, uint32_t cert_len)
+uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const unsigned char *certificate, const uint32_t cert_len)
 {
     tr_debug("certificate_expiration_time");
     mbedtls_x509_crt cert;
     mbedtls_x509_crt_init(&cert);
     uint32_t epoch_time = 0;
 
-    int ret = mbedtls_x509_crt_parse(&cert, (const unsigned char*)certificate,
+    int ret = mbedtls_x509_crt_parse(&cert, certificate,
                            cert_len + 1);
     if(ret == 0) {
         mbedtls_x509_time time = cert.valid_to;
@@ -312,14 +312,14 @@ uint32_t M2MConnectionSecurityPimpl::certificate_expiration_time(const char *cer
 }
 
 
-uint32_t M2MConnectionSecurityPimpl::certificate_validfrom_time(const char *certificate, uint32_t cert_len)
+uint32_t M2MConnectionSecurityPimpl::certificate_validfrom_time(const unsigned char *certificate, const uint32_t cert_len)
 {
     tr_debug("M2MConnectionSecurityPimpl::certificate_validfrom_time");
     mbedtls_x509_crt cert;
     mbedtls_x509_crt_init(&cert);
     uint32_t epoch_time = 0;
 
-    int ret = mbedtls_x509_crt_parse(&cert, (const unsigned char*)certificate,
+    int ret = mbedtls_x509_crt_parse(&cert, certificate,
                            cert_len + 1);
     if(ret == 0) {
         mbedtls_x509_time time = cert.valid_from;
@@ -389,8 +389,8 @@ bool M2MConnectionSecurityPimpl::check_certificate_validity(const uint8_t *cert,
 {
 
     // Get the validFrom and validTo fields from certificate
-    int64_t server_validfrom = (int64_t)certificate_validfrom_time((const char*)cert, cert_len);
-    int64_t server_validto = (int64_t)certificate_expiration_time((const char*)cert, cert_len);
+    int64_t server_validfrom = (int64_t)certificate_validfrom_time((const unsigned char*)cert, cert_len);
+    int64_t server_validto = (int64_t)certificate_expiration_time((const unsigned char*)cert, cert_len);
 
     tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - valid from: %" PRId64, server_validfrom);
     tr_debug("M2MConnectionSecurityPimpl::check_server_certificate_validity - valid to: %" PRId64, server_validto);

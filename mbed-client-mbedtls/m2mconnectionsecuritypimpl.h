@@ -139,7 +139,7 @@ private:
     *  \param cert_len, Length of the certificate.
     *  \return epoch time or 0 if failure.
     */
-    uint32_t certificate_expiration_time(const char *certificate, uint32_t cert_len);
+    uint32_t certificate_expiration_time(const unsigned char *certificate, const uint32_t cert_len);
 
     /**
     *  \brief Returns certificate validFrom time in epoch format.
@@ -147,7 +147,7 @@ private:
     *  \param cert_len, Length of the certificate.
     *  \return epoch time or 0 if failure.
     */
-    uint32_t certificate_validfrom_time(const char *certificate, uint32_t cert_len);
+    uint32_t certificate_validfrom_time(const unsigned char *certificate, const uint32_t cert_len);
 
     /**
     * \brief A utility function to check if provided certificate is valid with given time
