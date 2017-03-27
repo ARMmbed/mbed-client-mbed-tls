@@ -17,8 +17,6 @@
 #include <string.h>
 #include "mbed-client/m2mconnectionhandler.h"
 #include "mbed-client/m2mconnectionsecurity.h"
-#include "mbed-client/m2mtimer.h"
-#include "mbed-client/m2msecurity.h"
 #include "mbed-client-mbedtls/m2mconnectionsecuritypimpl.h"
 
 M2MConnectionSecurity::M2MConnectionSecurity(SecurityMode mode)
