@@ -340,6 +340,9 @@ uint32_t M2MConnectionSecurityPimpl::certificate_validfrom_time(const unsigned c
 }
 
 bool M2MConnectionSecurityPimpl::check_security_object_validity(const M2MSecurity *security) {
+    // XXXXXXX: Disable certificate validity check until current time is in correct format
+    return true;
+
     // Get time from device object
     M2MDevice *device = M2MInterfaceFactory::create_device();
     const uint8_t *certificate = NULL;
