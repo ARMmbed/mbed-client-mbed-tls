@@ -364,8 +364,8 @@ bool M2MConnectionSecurityPimpl::check_certificate_validity(const uint8_t *cert,
     tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - valid to: %" PRId64, server_validto);
     tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - device time: %" PRId64, device_time);
 
-    if (device_time < server_validfrom || device_time > server_validto) {
-        tr_error("Device time outside of certificate validity period!");
+    if (server_validto < server_validfrom || device_time < server_validfrom || device_time > server_validto) {
+        tr_error("Invalid certificate validity or device time outside of certificate validity period!");
         return false;
     }
 
