@@ -26,6 +26,7 @@
 #include "pal_tls_stub.h"
 #include "pal_crypto_stub.h"
 #include "m2mdevice_stub.h"
+#include "m2minterfacefactory_stub.h"
 
 uint32_t get_random_number(void)
 {
@@ -281,25 +282,30 @@ void Test_M2MConnectionSecurityPimpl::test_certificate_parse_valid_time()
 
 }
 
-void Test_M2MConnectionSecurityPimpl::test_check_server_certificate_validity()
+void Test_M2MConnectionSecurityPimpl::test_check_security_object_validity()
 {
+    //return;
     M2MSecurity security(M2MSecurity::Bootstrap);
     M2MConnectionSecurityPimpl impl = M2MConnectionSecurityPimpl(M2MConnectionSecurity::TLS);
 
-    CHECK(!impl.check_server_certificate_validity(NULL));
+    CHECK(!impl.check_security_object_validity(NULL));
 
+    m2minterfacefactory_stub::null_device = true;
+    CHECK(!impl.check_security_object_validity(&security));
+
+    m2minterfacefactory_stub::null_device = false;
     m2mdevice_stub::bool_value = true;
-    CHECK(!impl.check_server_certificate_validity(&security));
+    CHECK(!impl.check_security_object_validity(&security));
 
     m2mdevice_stub::int_value = 1;
     m2msecurity_stub::has_value = true;
-    CHECK(!impl.check_server_certificate_validity(&security));
+    CHECK(!impl.check_security_object_validity(&security));
 
     m2mdevice_stub::int_value = 0;
-    CHECK(impl.check_server_certificate_validity(&security));
+    CHECK(impl.check_security_object_validity(&security));
 
     pal_crypto_stub::status = PAL_ERR_GENERIC_FAILURE;
-    CHECK(!impl.check_server_certificate_validity(&security));
+    CHECK(!impl.check_security_object_validity(&security));
 
     M2MDevice::delete_instance();
 

@@ -49,7 +49,7 @@ public:
 
     void test_certificate_parse_valid_time();
 
-    void test_check_server_certificate_validity();
+    void test_check_security_object_validity();
 
 };
 

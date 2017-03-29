@@ -92,9 +92,9 @@ TEST(M2MConnectionSecurityPimpl_mbedtls, test_certificate_parse_valid_time)
     inst->test_certificate_parse_valid_time();
 }
 
-TEST(M2MConnectionSecurityPimpl_mbedtls, test_check_server_certificate_validity)
+TEST(M2MConnectionSecurityPimpl_mbedtls, test_check_security_object_validity)
 {
-    inst->test_check_server_certificate_validity();
+    inst->test_check_security_object_validity();
 }
 
 
