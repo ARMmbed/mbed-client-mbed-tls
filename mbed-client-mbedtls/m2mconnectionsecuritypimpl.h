@@ -21,9 +21,7 @@
 #include "mbed-client/m2mtimerobserver.h"
 #include "mbed-client/m2mconstants.h"
 #include "mbed-client/m2msecurity.h"
-extern "C"{
-#include "pal_TLS.h"
-}
+#include "pal.h"
 #include "mbedtls/config.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/debug.h"

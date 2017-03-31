@@ -18,9 +18,7 @@
 #include "mbed-client-mbedtls/m2mconnectionsecuritypimpl.h"
 #include "mbed-client/m2msecurity.h"
 #include "mbed-trace/mbed_trace.h"
-extern "C"{
-#include "pal_TLS.h"
-}
+#include "pal.h"
 #include "m2mdevice.h"
 #include "m2minterfacefactory.h"
 #include <string.h>
