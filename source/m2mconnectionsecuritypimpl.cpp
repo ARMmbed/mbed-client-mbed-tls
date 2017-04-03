@@ -347,6 +347,11 @@ bool M2MConnectionSecurityPimpl::check_security_object_validity(const M2MSecurit
     int64_t device_time = 0;
     uint32_t cert_len = 0;
 
+    // Check if we even should check certificate expiration when using this security object
+    if (security->verify_cert_expiration() == false) {
+        return true;
+    }
+
     if (device == NULL || security == NULL || device->is_resource_present(M2MDevice::CurrentTime) == false) {
         tr_error("No time from device object or security object available, fail connector registration %p, %p, %d\n", device,security, device->is_resource_present(M2MDevice::CurrentTime));
         return false;
