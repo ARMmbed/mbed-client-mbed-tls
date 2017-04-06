@@ -70,7 +70,7 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
     }
 
     if(_entropy.entropy_source_ptr) {
-        if(PAL_SUCCESS != pal_addEntropySource(_entropy.entropy_source_ptr) < 0 ){
+        if(PAL_SUCCESS != pal_addEntropySource(_entropy.entropy_source_ptr)){
             return -1;
         }
     }
