@@ -103,10 +103,9 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
 
         // Check if we are connecting to M2MServer and check if server certificate is valid, no need to do this
         // for Bootstrap currently
-        if (security->server_type() == M2MSecurity::M2MServer
-                /*TODO: add back when current time works correctly! && !check_security_object_validity(security)*/) {
-            tr_error("M2MConnectionSecurityPimpl::init - M2MServer certificate invalid!");
-            return -1;
+        if (security->server_type() == M2MSecurity::M2MServer && !check_security_object_validity(security)) {
+            tr_error("M2MConnectionSecurityPimpl::init - M2MServer certificate invalid! - To be fixed when we are sure we have RTC even in direct LWM2M case");
+            //return -1;
         }
 
         owncert.size = 1 + security->resource_value_buffer(M2MSecurity::PublicKey, (const uint8_t*&)owncert.buffer);
