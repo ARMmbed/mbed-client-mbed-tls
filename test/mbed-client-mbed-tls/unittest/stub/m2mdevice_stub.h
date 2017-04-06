@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef M2M_DEVICE_STUB_H
+#define M2M_DEVICE_STUB_H
 
-#ifndef PAL_TLS_STUB_H
-#define PAL_TLS_STUB_H
+#include "m2mdevice.h"
 
-#include "pal.h"
-
-namespace pal_tls_stub
+//some internal test related stuff
+namespace m2mdevice_stub
 {
-    extern palStatus_t status;
-    extern palStatus_t new_status;
-    extern uint32_t change_status_count; //status changed to new_status after this turns to 0
+    extern uint32_t int_value;
+    extern M2MResource* resource;
+    extern String *string_value;
+    extern bool bool_value;
+    extern M2MDevice *device;
+    void clear();
 }
 
-#endif // PAL_TLS_STUB_H
+#endif // M2M_DEVICE_STUB_H

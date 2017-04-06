@@ -17,11 +17,16 @@
 #include "test_m2mconnectionsecuritypimpl_mbedtls.h"
 #include "m2mtimerobserver.h"
 #include "m2msecurity.h"
+#include "m2mdevice.h"
+#include "m2minterfacefactory.h"
 #include "m2msecurity_stub.h"
 #include "mbedtls_stub.h"
 #include "mbed-client/m2mconnectionhandler.h"
 #include "m2mtimer_stub.h"
 #include "pal_tls_stub.h"
+#include "pal_crypto_stub.h"
+#include "m2mdevice_stub.h"
+#include "m2minterfacefactory_stub.h"
 
 uint32_t get_random_number(void)
 {
@@ -125,11 +130,16 @@ void Test_M2MConnectionSecurityPimpl::test_init()
     pal_tls_stub::change_status_count = 4;
     CHECK( impl.init(sec) );
 
+    pal_tls_stub::status = PAL_SUCCESS;
+    pal_tls_stub::new_status = PAL_ERR_GENERIC_FAILURE;
+    pal_tls_stub::change_status_count = 5;
+    CHECK( impl.init(sec) );
+
     m2msecurity_stub::sec_mode = M2MSecurity::Psk;
 
     pal_tls_stub::status = PAL_SUCCESS;
     pal_tls_stub::new_status = PAL_ERR_GENERIC_FAILURE;
-    pal_tls_stub::change_status_count = 1;
+    pal_tls_stub::change_status_count = 2;
     CHECK( impl.init(sec) );
 
     m2msecurity_stub::sec_mode = 123;
@@ -230,7 +240,7 @@ void Test_M2MConnectionSecurityPimpl::test_set_entropy_callback()
     impl.set_entropy_callback(ent_cb);
 }
 
-uint32_t test_random_callback(void)
+uint32_t test_random_callback()
 {
     return 1;
 }
@@ -242,3 +252,62 @@ void Test_M2MConnectionSecurityPimpl::test_set_socket()
     impl._sec_mode = M2MConnectionSecurity::DTLS;
     impl.set_socket(0, NULL);
 }
+
+void Test_M2MConnectionSecurityPimpl::test_certificate_parse_valid_time()
+{
+    M2MConnectionSecurityPimpl impl = M2MConnectionSecurityPimpl(M2MConnectionSecurity::TLS);
+
+    pal_crypto_stub::status = PAL_SUCCESS;
+    pal_crypto_stub::change_status_count = 0;
+    CHECK(impl.certificate_parse_valid_time("", NULL, NULL));
+
+    pal_crypto_stub::status = PAL_ERR_GENERIC_FAILURE;
+
+    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL));
+
+    pal_crypto_stub::status = PAL_SUCCESS;
+    pal_crypto_stub::new_status = PAL_ERR_GENERIC_FAILURE;
+    pal_crypto_stub::change_status_count = 1;
+    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL));
+
+    pal_crypto_stub::status = PAL_SUCCESS;
+    pal_crypto_stub::new_status = PAL_ERR_GENERIC_FAILURE;
+    pal_crypto_stub::change_status_count = 2;
+    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL));
+
+    pal_crypto_stub::status = PAL_SUCCESS;
+    pal_crypto_stub::new_status = PAL_ERR_GENERIC_FAILURE;
+    pal_crypto_stub::change_status_count = 3;
+    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL));
+
+}
+
+void Test_M2MConnectionSecurityPimpl::test_check_security_object_validity()
+{
+    //return;
+    M2MSecurity security(M2MSecurity::Bootstrap);
+    M2MConnectionSecurityPimpl impl = M2MConnectionSecurityPimpl(M2MConnectionSecurity::TLS);
+
+    CHECK(!impl.check_security_object_validity(NULL));
+
+    m2minterfacefactory_stub::null_device = true;
+    CHECK(!impl.check_security_object_validity(&security));
+
+    m2minterfacefactory_stub::null_device = false;
+    m2mdevice_stub::bool_value = true;
+    CHECK(!impl.check_security_object_validity(&security));
+
+    m2mdevice_stub::int_value = 1;
+    m2msecurity_stub::has_value = true;
+    CHECK(!impl.check_security_object_validity(&security));
+
+    m2mdevice_stub::int_value = 0;
+    CHECK(impl.check_security_object_validity(&security));
+
+    pal_crypto_stub::status = PAL_ERR_GENERIC_FAILURE;
+    CHECK(!impl.check_security_object_validity(&security));
+
+    M2MDevice::delete_instance();
+
+}
+

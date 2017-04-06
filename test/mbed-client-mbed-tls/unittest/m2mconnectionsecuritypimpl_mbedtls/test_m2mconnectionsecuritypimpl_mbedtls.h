@@ -47,6 +47,10 @@ public:
 
     void test_set_socket();
 
+    void test_certificate_parse_valid_time();
+
+    void test_check_security_object_validity();
+
 };
 
 
