@@ -21,6 +21,8 @@
 #include "mbed-client/m2mtimerobserver.h"
 #include "mbed-client/m2mconstants.h"
 #include "mbed-client/m2msecurity.h"
+#include "mbed-client/m2mconfig.h"
+
 #include "pal.h"
 
 /**

@@ -359,8 +359,8 @@ bool M2MConnectionSecurityPimpl::check_certificate_validity(const uint8_t *cert,
         return false;
     }
 
-    tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - valid from: %" PRId64, server_validfrom);
-    tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - valid to: %" PRId64, server_validto);
+    tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - valid from: %" PRId32, server_validfrom);
+    tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - valid to: %" PRId32, server_validto);
     tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - device time: %" PRId64, device_time);
 
     if (server_validto < server_validfrom || device_time < server_validfrom || device_time > server_validto) {
