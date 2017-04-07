@@ -35,7 +35,8 @@ M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::Se
     :_init_done(M2MConnectionSecurityPimpl::INIT_NOT_STARTED),
      _conf(0),
      _ssl(0),
-     _sec_mode(mode)
+     _sec_mode(mode),
+     _entropy({ 0, 0, 0, 0 })
 {
 }
 
