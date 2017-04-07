@@ -25,6 +25,8 @@
 
 #include "pal.h"
 
+#include <time.h>
+
 /**
  * @brief The M2MConnectionSecurityPimpl class
  */
@@ -150,7 +152,7 @@ private:
     *  \param valid_to ValidTo time will be written to this parameter on success.
     *  \return true on success or false on failure.
     */
-    bool certificate_parse_valid_time(const char *certificate, uint32_t *valid_from, uint32_t *valid_to);
+    bool certificate_parse_valid_time(const char *certificate, uint32_t certificate_len, time_t *valid_from, time_t *valid_to);
 
     /**
     * \brief A utility function to check if provided security object

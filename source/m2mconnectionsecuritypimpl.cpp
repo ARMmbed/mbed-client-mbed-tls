@@ -269,7 +269,7 @@ void M2MConnectionSecurityPimpl::set_socket(palSocket_t socket, palSocketAddress
     }
 }
 
-bool M2MConnectionSecurityPimpl::certificate_parse_valid_time(const char *certificate, uint32_t *valid_from, uint32_t *valid_to)
+bool M2MConnectionSecurityPimpl::certificate_parse_valid_time(const char *certificate, uint32_t certificate_len, time_t *valid_from, time_t *valid_to)
 {
     palX509Handle_t cert;
     size_t len;
@@ -278,22 +278,22 @@ bool M2MConnectionSecurityPimpl::certificate_parse_valid_time(const char *certif
     tr_debug("certificate_validfrom_time");
 
     if(PAL_SUCCESS != (ret = pal_x509Initiate(&cert))) {
-        tr_error("certificate_validfrom_time - cert init failed: %d", (int)ret);
+        tr_error("certificate_validfrom_time - cert init failed: %u", (int)ret);
         pal_x509Free(&cert);
         return false;
     }
-    if(PAL_SUCCESS != (ret = pal_x509CertParse(cert, (const unsigned char*)certificate, strlen(certificate) + 1))) {
-        tr_error("certificate_validfrom_time - cert parse failed: %d", (int)ret);
+    if(PAL_SUCCESS != (ret = pal_x509CertParse(cert, (const unsigned char*)certificate, certificate_len))) {
+        tr_error("certificate_validfrom_time - cert parse failed: %u", (int)ret);
         pal_x509Free(&cert);
         return false;
     }
-    if(PAL_SUCCESS != (ret = pal_x509CertGetAttribute(cert, PAL_X509_VALID_FROM, valid_from, sizeof(uint32_t), &len))) {
-        tr_error("certificate_validfrom_time - cert attr get failed: %d", (int)ret);
+    if(PAL_SUCCESS != (ret = pal_x509CertGetAttribute(cert, PAL_X509_VALID_FROM, valid_from, sizeof(time_t), &len))) {
+        tr_error("certificate_validfrom_time - cert attr get failed: %u", (int)ret);
         pal_x509Free(&cert);
         return false;
     }
-    if(PAL_SUCCESS != (ret = pal_x509CertGetAttribute(cert, PAL_X509_VALID_TO, valid_to, sizeof(uint32_t), &len))) {
-        tr_error("certificate_validfrom_time - cert attr get failed: %d", (int)ret);
+    if(PAL_SUCCESS != (ret = pal_x509CertGetAttribute(cert, PAL_X509_VALID_TO, valid_to, sizeof(time_t), &len))) {
+        tr_error("certificate_validfrom_time - cert attr get failed: %u", (int)ret);
         pal_x509Free(&cert);
         return false;
     }
@@ -352,18 +352,18 @@ bool M2MConnectionSecurityPimpl::check_certificate_validity(const uint8_t *cert,
 {
 
     // Get the validFrom and validTo fields from certificate
-    uint32_t server_validfrom = 0;
-    uint32_t server_validto = 0;
-    if(!certificate_parse_valid_time((const char*)cert, &server_validfrom, &server_validto)) {
+    time_t server_validfrom = 0;
+    time_t server_validto = 0;
+    if(!certificate_parse_valid_time((const char*)cert, cert_len, &server_validfrom, &server_validto)) {
         tr_error("Certificate time parsing failed");
         return false;
     }
 
-    tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - valid from: %" PRId32, server_validfrom);
-    tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - valid to: %" PRId32, server_validto);
+    tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - valid from: %" PRIu32, server_validfrom);
+    tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - valid to: %" PRIu32, server_validto);
     tr_debug("M2MConnectionSecurityPimpl::check_certificate_validity - device time: %" PRId64, device_time);
 
-    if (server_validto < server_validfrom || device_time < server_validfrom || device_time > server_validto) {
+    if (device_time < (uint32_t)server_validfrom || device_time > (uint32_t)server_validto) {
         tr_error("Invalid certificate validity or device time outside of certificate validity period!");
         return false;
     }
