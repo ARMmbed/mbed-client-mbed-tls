@@ -35,8 +35,7 @@ M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::Se
     :_init_done(M2MConnectionSecurityPimpl::INIT_NOT_STARTED),
      _conf(0),
      _ssl(0),
-     _sec_mode(mode),
-     _entropy({ 0, 0, 0, 0 })
+     _sec_mode(mode)
 {
 }
 
@@ -64,6 +63,8 @@ void M2MConnectionSecurityPimpl::reset()
 int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
 {
     tr_debug("M2MConnectionSecurityPimpl::init");
+
+    mbedtls_entropy _entropy={0};
 
     if(!security){
         tr_error("M2MConnectionSecurityPimpl Security NULL.");
