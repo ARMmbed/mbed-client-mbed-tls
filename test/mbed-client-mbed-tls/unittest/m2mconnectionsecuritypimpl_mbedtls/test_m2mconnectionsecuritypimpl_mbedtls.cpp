@@ -259,26 +259,26 @@ void Test_M2MConnectionSecurityPimpl::test_certificate_parse_valid_time()
 
     pal_crypto_stub::status = PAL_SUCCESS;
     pal_crypto_stub::change_status_count = 0;
-    CHECK(impl.certificate_parse_valid_time("", NULL, NULL));
+    CHECK(impl.certificate_parse_valid_time("", NULL, NULL, NULL));
 
     pal_crypto_stub::status = PAL_ERR_GENERIC_FAILURE;
 
-    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL));
+    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL, NULL));
 
     pal_crypto_stub::status = PAL_SUCCESS;
     pal_crypto_stub::new_status = PAL_ERR_GENERIC_FAILURE;
     pal_crypto_stub::change_status_count = 1;
-    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL));
+    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL, NULL));
 
     pal_crypto_stub::status = PAL_SUCCESS;
     pal_crypto_stub::new_status = PAL_ERR_GENERIC_FAILURE;
     pal_crypto_stub::change_status_count = 2;
-    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL));
+    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL, NULL));
 
     pal_crypto_stub::status = PAL_SUCCESS;
     pal_crypto_stub::new_status = PAL_ERR_GENERIC_FAILURE;
     pal_crypto_stub::change_status_count = 3;
-    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL));
+    CHECK(!impl.certificate_parse_valid_time("", NULL, NULL, NULL));
 
 }
 
