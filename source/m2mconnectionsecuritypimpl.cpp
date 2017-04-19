@@ -342,6 +342,8 @@ bool M2MConnectionSecurityPimpl::check_security_object_validity(const M2MSecurit
         tr_error("Client certificate not valid!");
         return false;
     }
+    certificate = NULL;
+    cert_len = 0;
 
     tr_info("Checking server certificate validity");
 
