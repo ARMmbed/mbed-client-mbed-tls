@@ -32,23 +32,20 @@
 #include "pal.h"
 #include "m2mdevice.h"
 #include "m2minterfacefactory.h"
+#include "eventOS_event_timer.h"
+#include "mbed-client-classic/m2mconnectionhandlerpimpl.h"
 #include <string.h>
-
-// Note: this macro is needed on armcc to get the the PRI*32 macros
-// from inttypes.h in a C++ code.
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
-#endif
 
 #define TRACE_GROUP "mClt"
 
 M2MConnectionSecurityPimpl::M2MConnectionSecurityPimpl(M2MConnectionSecurity::SecurityMode mode)
     :_init_done(M2MConnectionSecurityPimpl::INIT_NOT_STARTED),
+     _connection_tasklet_id(-1),
      _conf(0),
      _ssl(0),
      _sec_mode(mode)
 {
-        memset(&_entropy, 0, sizeof(entropy_cb));
+    memset(&_entropy, 0, sizeof(entropy_cb));
 }
 
 M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl()
@@ -59,10 +56,18 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl()
             pal_freeTLS(&_ssl);
         }
     }
+    if(-1 != _connection_tasklet_id) {
+        eventOS_event_timer_cancel(M2MConnectionHandlerPimpl::ESocketHandshake, _connection_tasklet_id);
+    }
 }
 
 void M2MConnectionSecurityPimpl::reset()
 {
+
+    if(-1 != _connection_tasklet_id) {
+        eventOS_event_timer_cancel(M2MConnectionHandlerPimpl::ESocketHandshake, _connection_tasklet_id);
+    }
+
     if(_init_done){
         pal_tlsConfigurationFree(&_conf);
         if(_init_done == M2MConnectionSecurityPimpl::INIT_DONE){
@@ -70,6 +75,28 @@ void M2MConnectionSecurityPimpl::reset()
         }
     }
     _init_done = M2MConnectionSecurityPimpl::INIT_NOT_STARTED;
+    if(-1 != _connection_tasklet_id) {
+        eventOS_event_timer_cancel(M2MConnectionHandlerPimpl::ESocketHandshake, _connection_tasklet_id);
+        _connection_tasklet_id = -1;
+    }
+}
+
+static void tls_timer_set_cb(void *context, uint32_t time_ms)
+{
+    int8_t tasklet_id;
+    uint32_t time;
+
+    tasklet_id = *(int8_t*)context;
+
+    time = time_ms / 10; //Change to 10ms resolution and make sure that it does not go to 0
+    if(!time) {
+        time = 1;
+    }
+
+    if(-1 != tasklet_id) {
+        eventOS_event_timer_cancel(M2MConnectionHandlerPimpl::ESocketHandshake, tasklet_id);
+        eventOS_event_timer_request(M2MConnectionHandlerPimpl::ESocketHandshake, M2MConnectionHandlerPimpl::ESocketHandshake, tasklet_id, time);
+    }
 }
 
 int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
@@ -101,7 +128,12 @@ int M2MConnectionSecurityPimpl::init(const M2MSecurity *security)
 
 
     if(_sec_mode == M2MConnectionSecurity::DTLS){
+        _connection_tasklet_id = M2MConnectionHandlerPimpl::get_tasklet_id();
         pal_setHandShakeTimeOut(_conf, 20000);
+
+        if(-1 !=_connection_tasklet_id){
+            pal_tlsSetTimerSetCallBack(_conf, &_connection_tasklet_id, tls_timer_set_cb);
+        }
     }
 
     M2MSecurity::SecurityModeType cert_mode =
@@ -176,10 +208,10 @@ int M2MConnectionSecurityPimpl::start_handshake()
     tr_debug("M2MConnectionSecurityPimpl::start_handshake");
 
     palStatus_t ret;
-
+    eventOS_event_timer_cancel(M2MConnectionHandlerPimpl::ESocketHandshake, _connection_tasklet_id);
     ret = pal_handShake(_ssl, _conf);
 
-    if(ret == PAL_ERR_TLS_WANT_READ || ret == PAL_ERR_TLS_WANT_WRITE || ret == PAL_ERR_TIMEOUT_EXPIRED){
+    if(ret == PAL_ERR_TLS_WANT_READ || ret == PAL_ERR_TLS_WANT_WRITE){
         return M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
     }
 
@@ -220,7 +252,6 @@ int M2MConnectionSecurityPimpl::send_message(unsigned char *message, int len)
         return ret;
     }
 
-
     if(PAL_SUCCESS == (return_value = pal_sslWrite(_ssl, message, len, &len_write))){
         ret = (int)len_write;
     }
@@ -244,6 +275,8 @@ int M2MConnectionSecurityPimpl::read(unsigned char* buffer, uint16_t len)
         return ret;
     }
 
+    eventOS_event_timer_cancel(M2MConnectionHandlerPimpl::ESocketHandshake, _connection_tasklet_id);
+
     if(PAL_SUCCESS == (return_value = pal_sslRead(_ssl, buffer, len, &len_read))){
         ret = (int)len_read;
     }
@@ -251,7 +284,6 @@ int M2MConnectionSecurityPimpl::read(unsigned char* buffer, uint16_t len)
     else if(return_value == PAL_ERR_TLS_WANT_READ || return_value == PAL_ERR_TLS_WANT_WRITE || return_value == PAL_ERR_TIMEOUT_EXPIRED){
         ret = M2MConnectionHandler::CONNECTION_ERROR_WANTS_READ;
     }
-
     return ret;
 }
 
@@ -342,6 +374,7 @@ bool M2MConnectionSecurityPimpl::check_security_object_validity(const M2MSecurit
         tr_error("Client certificate not valid!");
         return false;
     }
+
     certificate = NULL;
     cert_len = 0;
 

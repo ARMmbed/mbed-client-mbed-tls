@@ -166,6 +166,7 @@ private:
 private:
 
     uint8_t                             _init_done;
+    int8_t                              _connection_tasklet_id;
     palTLSConfHandle_t                  _conf;
     palTLSHandle_t                      _ssl;
     M2MConnectionSecurity::SecurityMode _sec_mode;
