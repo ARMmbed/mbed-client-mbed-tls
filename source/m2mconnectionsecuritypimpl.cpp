@@ -64,6 +64,9 @@ M2MConnectionSecurityPimpl::~M2MConnectionSecurityPimpl()
 void M2MConnectionSecurityPimpl::reset()
 {
 
+    if(-1 != _connection_tasklet_id) {
+        eventOS_event_timer_cancel(M2MConnectionHandlerPimpl::ESocketHandshake, _connection_tasklet_id);
+    }
 
     if(_init_done){
         pal_tlsConfigurationFree(&_conf);
